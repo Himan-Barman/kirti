@@ -41,7 +41,7 @@ interface StoreContextType {
   toastMessage: string | null; // Keeping for backward compatibility temporarily if needed
   theme: 'light' | 'dark';
 
-  setActiveTab: (tab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password') => void;
+  setActiveTab: (tab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password' | 'menu') => void;
   setSelectedPandal: (pandal: PandalWithStats | null) => void;
   setSelectedFriendProfile: (friend: Profile | null) => void;
   setSearchQuery: (query: string) => void;
