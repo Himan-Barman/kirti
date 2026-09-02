@@ -69,7 +69,8 @@ const StoreContext = createContext<StoreContextType | null>(null);
 const STORAGE_KEYS = {
   USER: 'kirti_user',
   SETTINGS: 'kirti_settings',
-  THEME: 'kirti_theme'
+  THEME: 'kirti_theme',
+  TAB: 'kirti_active_tab'
 };
 
 const GUEST_USER: Profile = {
@@ -114,7 +115,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [friendships] = useState<Friendship[]>([]);
   const [activities] = useState<FriendActivity[]>([]);
 
-  const [activeTab, setActiveTab] = useState<'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password'>('discover');
+  const [activeTab, setActiveTabState] = useState<'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password'>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.TAB);
+    return (saved as any) || 'discover';
+  });
+
+  const setActiveTab = (tab: typeof activeTab) => {
+    setActiveTabState(tab);
+    localStorage.setItem(STORAGE_KEYS.TAB, tab);
+  };
   const [selectedPandalId, setSelectedPandalId] = useState<string | null>(null);
   const [selectedFriendProfile, setSelectedFriendProfile] = useState<Profile | null>(null);
   const [searchQuery, setSearchQuery] = useState('');

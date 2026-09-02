@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const getStoredSupabaseConfig = () => {
   const url = localStorage.getItem('kirti_supabase_url') || import.meta.env.VITE_SUPABASE_URL;
-  const anonKey = localStorage.getItem('kirti_supabase_anon_key') || import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const anonKey = localStorage.getItem('kirti_supabase_anon_key') || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
   return { url, anonKey };
 };
 
