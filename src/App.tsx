@@ -20,8 +20,22 @@ export const AppContent: React.FC = () => {
     activeTab,
     toastMessage,
     selectedPandal,
-    selectedFriendProfile
+    selectedFriendProfile,
+    isLoading
   } = useStore();
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+        <div style={{ width: 40, height: 40, border: '4px solid var(--kirti-gold)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <h2 style={{ marginTop: 20, fontFamily: 'var(--font-bengali)', fontSize: 24, fontWeight: 'bold' }}>কীর্তি</h2>
+        <p style={{ marginTop: 8, color: 'var(--text-muted)' }}>Connecting to Supabase...</p>
+        <style>{`
+          @keyframes spin { 100% { transform: rotate(360deg); } }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="app-layout">

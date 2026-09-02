@@ -8,15 +8,7 @@ import type {
   FriendActivity,
   PandalWithStats
 } from '../types/database.types';
-import {
-  INITIAL_USER,
-  MOCK_FRIENDS,
-  OTHER_USERS,
-  MOCK_PANDALS,
-  INITIAL_RATINGS,
-  INITIAL_VISITS,
-  INITIAL_ACTIVITIES
-} from './mockData';
+import { supabase } from './supabase';
 
 interface FriendStats {
   visitedCount: number;
@@ -27,6 +19,7 @@ interface FriendStats {
 }
 
 interface StoreContextType {
+  isLoading: boolean;
   currentUser: Profile;
   settings: ProfileSettings;
   pandals: PandalWithStats[];
@@ -75,15 +68,17 @@ const StoreContext = createContext<StoreContextType | null>(null);
 const STORAGE_KEYS = {
   USER: 'kirti_user',
   SETTINGS: 'kirti_settings',
-  VISITS: 'kirti_visits',
-  RATINGS: 'kirti_ratings',
-  FRIENDSHIPS: 'kirti_friendships',
-  ACTIVITIES: 'kirti_activities',
   THEME: 'kirti_theme'
 };
 
+const GUEST_USER: Profile = {
+  id: 'guest_user',
+  username: 'guest',
+  display_name: 'Guest User',
+  avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
+};
+
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Theme state: default to 'light' or system preference / saved
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
     if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
@@ -99,43 +94,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   };
 
-  const [currentUser, setCurrentUser] = useState<Profile>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.USER);
-    return saved ? JSON.parse(saved) : INITIAL_USER;
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<Profile>(GUEST_USER);
+  const [settings, setSettings] = useState<ProfileSettings>({ 
+    user_id: 'guest_user', 
+    visit_visibility: 'friends', 
+    profile_visibility: 'public',
+    rating_visibility: 'public',
+    allow_friend_requests: true
   });
-
-  const [settings, setSettings] = useState<ProfileSettings>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    return saved ? JSON.parse(saved) : { user_id: 'user_me', visit_visibility: 'friends', profile_visibility: 'public' };
-  });
-
-  const [visits, setVisits] = useState<{ userId: string; pandalId: string; visitedAt: string }[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.VISITS);
-    return saved ? JSON.parse(saved) : INITIAL_VISITS;
-  });
-
-  const [ratings, setRatings] = useState<Rating[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.RATINGS);
-    return saved ? JSON.parse(saved) : INITIAL_RATINGS;
-  });
-
-  const [friendships, setFriendships] = useState<Friendship[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.FRIENDSHIPS);
-    if (saved) return JSON.parse(saved);
-    return MOCK_FRIENDS.map(f => ({
-      id: `f_${f.id}`,
-      requester_id: 'user_me',
-      addressee_id: f.id,
-      status: 'accepted' as const,
-      created_at: '2026-08-20T10:00:00Z',
-      addressee: f
-    }));
-  });
-
-  const [activities, setActivities] = useState<FriendActivity[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.ACTIVITIES);
-    return saved ? JSON.parse(saved) : INITIAL_ACTIVITIES;
-  });
+  
+  const [dbPandals, setDbPandals] = useState<Pandal[]>([]);
+  const [visits] = useState<{ userId: string; pandalId: string; visitedAt: string }[]>([]);
+  const [ratings] = useState<Rating[]>([]);
+  const [friendships] = useState<Friendship[]>([]);
+  const [activities] = useState<FriendActivity[]>([]);
 
   const [activeTab, setActiveTab] = useState<'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile'>('discover');
   const [selectedPandalId, setSelectedPandalId] = useState<string | null>(null);
@@ -145,29 +118,61 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [sortBy, setSortBy] = useState<'rating' | 'visits' | 'friends' | 'name'>('rating');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Fetch data from Supabase on mount
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
-  }, [currentUser]);
+    const fetchSupabaseData = async () => {
+      setIsLoading(true);
+      try {
+        if (!supabase) throw new Error("Supabase client not configured");
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-  }, [settings]);
+        // Fetch Pandals with Locations and Zones
+        const { data: pandalData, error: pandalError } = await supabase
+          .from('pandals')
+          .select(`
+            id, legacy_id, name, name_bn, slug, committee_name, description, historical_significance, founded_year, heritage_status,
+            pandal_locations ( address, city, latitude, longitude, zones ( name ) ),
+            pandal_images ( public_url, is_primary )
+          `);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.VISITS, JSON.stringify(visits));
-  }, [visits]);
+        if (pandalError) {
+          console.error("Error fetching pandals:", pandalError);
+        } else if (pandalData) {
+          const mappedPandals: Pandal[] = pandalData.map((p: any) => {
+            const loc = p.pandal_locations?.[0];
+            const zoneName = loc?.zones?.name || 'Unknown Zone';
+            const img = p.pandal_images?.find((i: any) => i.is_primary) || p.pandal_images?.[0];
+            
+            return {
+              id: p.id,
+              legacy_id: p.legacy_id,
+              name: p.name,
+              name_bn: p.name_bn,
+              slug: p.slug,
+              committee_name: p.committee_name,
+              description: p.description || '',
+              historical_significance: p.historical_significance,
+              founded_year: p.founded_year,
+              heritage_status: p.heritage_status,
+              address: loc?.address || '',
+              zone: zoneName,
+              city: loc?.city || 'Kolkata',
+              latitude: loc?.latitude || 0,
+              longitude: loc?.longitude || 0,
+              image_url: img?.public_url || 'https://images.unsplash.com/photo-1514222134-b57eaf8ce6c8?auto=format&fit=crop&w=800&q=80'
+            };
+          });
+          setDbPandals(mappedPandals);
+        }
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.RATINGS, JSON.stringify(ratings));
-  }, [ratings]);
+      } catch (err) {
+        console.error("Supabase fetch error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.FRIENDSHIPS, JSON.stringify(friendships));
-  }, [friendships]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.ACTIVITIES, JSON.stringify(activities));
-  }, [activities]);
+    fetchSupabaseData();
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -176,55 +181,29 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, 2800);
   };
 
-  const friends: Profile[] = friendships
-    .filter(f => f.status === 'accepted')
-    .map(f => {
-      if (f.requester_id === currentUser.id) {
-        return MOCK_FRIENDS.find(m => m.id === f.addressee_id) || OTHER_USERS.find(o => o.id === f.addressee_id) || {
-          id: f.addressee_id,
-          username: 'friend',
-          display_name: 'Puja Friend',
-          avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
-        };
-      } else {
-        return MOCK_FRIENDS.find(m => m.id === f.requester_id) || OTHER_USERS.find(o => o.id === f.requester_id) || {
-          id: f.requester_id,
-          username: 'friend',
-          display_name: 'Puja Friend',
-          avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
-        };
-      }
-    });
+  const friends: Profile[] = [];
+  const pendingIncomingRequests: Profile[] = [];
+  const pendingOutgoingRequests: Profile[] = [];
 
-  const pendingIncomingRequests: Profile[] = friendships
-    .filter(f => f.status === 'pending' && f.addressee_id === currentUser.id)
-    .map(f => OTHER_USERS.find(o => o.id === f.requester_id) || MOCK_FRIENDS.find(m => m.id === f.requester_id)!)
-    .filter(Boolean);
-
-  const pendingOutgoingRequests: Profile[] = friendships
-    .filter(f => f.status === 'pending' && f.requester_id === currentUser.id)
-    .map(f => OTHER_USERS.find(o => o.id === f.addressee_id) || MOCK_FRIENDS.find(m => m.id === f.addressee_id)!)
-    .filter(Boolean);
-
-  const pandals: PandalWithStats[] = MOCK_PANDALS.map(p => {
+  const pandals: PandalWithStats[] = dbPandals.map(p => {
     const pandalRatings = ratings.filter(r => r.pandal_id === p.id);
     const avgRating = pandalRatings.length > 0
       ? Number((pandalRatings.reduce((acc, curr) => acc + (curr.scores?.overall || curr.rating), 0) / pandalRatings.length).toFixed(1))
-      : 4.6;
-    const ratingCount = pandalRatings.length > 0 ? pandalRatings.length + 115 : 124;
+      : 0;
+    const ratingCount = pandalRatings.length;
 
     const themeAvg = pandalRatings.length > 0
       ? Number((pandalRatings.reduce((acc, curr) => acc + (curr.scores?.theme || curr.rating), 0) / pandalRatings.length).toFixed(1))
-      : Math.min(5.0, Number((avgRating + 0.1).toFixed(1)));
+      : 0;
     const idolAvg = pandalRatings.length > 0
       ? Number((pandalRatings.reduce((acc, curr) => acc + (curr.scores?.idol || curr.rating), 0) / pandalRatings.length).toFixed(1))
-      : Math.min(5.0, Number((avgRating + 0.05).toFixed(1)));
+      : 0;
     const lightingAvg = pandalRatings.length > 0
       ? Number((pandalRatings.reduce((acc, curr) => acc + (curr.scores?.lighting || curr.rating), 0) / pandalRatings.length).toFixed(1))
-      : Math.max(1.0, Number((avgRating - 0.1).toFixed(1)));
+      : 0;
     const managementAvg = pandalRatings.length > 0
       ? Number((pandalRatings.reduce((acc, curr) => acc + (curr.scores?.management || curr.rating), 0) / pandalRatings.length).toFixed(1))
-      : Math.max(1.0, Number((avgRating - 0.3).toFixed(1)));
+      : 0;
 
     const ratingSummary = {
       pandal_id: p.id,
@@ -245,22 +224,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const userVisited = pandalVisits.some(v => v.userId === currentUser.id);
     const userRatingObj = pandalRatings.find(r => r.user_id === currentUser.id);
 
-    const friendsWhoVisited = friends.filter(friend =>
-      pandalVisits.some(v => v.userId === friend.id)
-    );
-
     return {
       ...p,
       avgRating,
       ratingCount,
       ratingSummary,
-      visitCount: pandalVisits.length + 32,
+      visitCount: pandalVisits.length,
       userVisited,
       userRating: userRatingObj?.scores?.overall || userRatingObj?.rating,
       userScores: userRatingObj?.scores,
       userReview: userRatingObj?.review,
-      friendsVisitedCount: friendsWhoVisited.length,
-      friendsWhoVisited
+      friendsVisitedCount: 0,
+      friendsWhoVisited: []
     };
   });
 
@@ -268,161 +243,37 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     ? pandals.find(p => p.id === selectedPandalId) || null
     : null;
 
-  const toggleVisit = (pandalId: string) => {
-    const pandal = MOCK_PANDALS.find(p => p.id === pandalId);
-    if (!pandal) return;
-
-    const alreadyVisited = visits.some(v => v.userId === currentUser.id && v.pandalId === pandalId);
-
-    if (alreadyVisited) {
-      setVisits(prev => prev.filter(v => !(v.userId === currentUser.id && v.pandalId === pandalId)));
-      showToast(`Removed from visited`);
-    } else {
-      const newVisit = {
-        userId: currentUser.id,
-        pandalId,
-        visitedAt: new Date().toISOString()
-      };
-      setVisits(prev => [newVisit, ...prev]);
-
-      const currentCount = visits.filter(v => v.userId === currentUser.id).length + 1;
-      showToast(`Pandal visited ✓ (${currentCount} total)`);
-
-      const newActivity: FriendActivity = {
-        id: `act_${Date.now()}`,
-        type: 'visit',
-        user: currentUser,
-        pandalName: pandal.name,
-        pandalId: pandal.id,
-        timestamp: 'Just now'
-      };
-      setActivities(prev => [newActivity, ...prev]);
-    }
+  const toggleVisit = (_pandalId: string) => {
+    showToast("Please login to log visits. (Auth coming soon)");
   };
 
   const submitRating = (
-    pandalId: string,
-    scoresOrRating: number | { overall: number; theme: number; idol: number; lighting: number; management: number },
-    reviewText?: string
+    _pandalId: string,
+    _scoresOrRating: number | { overall: number; theme: number; idol: number; lighting: number; management: number },
+    _reviewText?: string
   ) => {
-    const pandal = MOCK_PANDALS.find(p => p.id === pandalId);
-    if (!pandal) return;
-
-    const scores = typeof scoresOrRating === 'number'
-      ? { overall: scoresOrRating, theme: scoresOrRating, idol: scoresOrRating, lighting: scoresOrRating, management: scoresOrRating }
-      : scoresOrRating;
-
-    const overallRating = scores.overall;
-
-    const existingIndex = ratings.findIndex(r => r.user_id === currentUser.id && r.pandal_id === pandalId);
-    const updatedRating: Rating = {
-      id: existingIndex >= 0 ? ratings[existingIndex].id : `r_${Date.now()}`,
-      user_id: currentUser.id,
-      pandal_id: pandalId,
-      rating: overallRating,
-      scores: scores,
-      is_visible: true,
-      review: reviewText?.trim() || undefined,
-      created_at: new Date().toISOString(),
-      user: currentUser
-    };
-
-    if (existingIndex >= 0) {
-      setRatings(prev => {
-        const copy = [...prev];
-        copy[existingIndex] = updatedRating;
-        return copy;
-      });
-    } else {
-      setRatings(prev => [updatedRating, ...prev]);
-    }
-
-    if (!visits.some(v => v.userId === currentUser.id && v.pandalId === pandalId)) {
-      setVisits(prev => [{ userId: currentUser.id, pandalId, visitedAt: new Date().toISOString() }, ...prev]);
-    }
-
-    showToast(`Rating submitted for ${pandal.name} (${overallRating}★) ✓`);
-
-    const newActivity: FriendActivity = {
-      id: `act_${Date.now()}`,
-      type: 'rating',
-      user: currentUser,
-      pandalName: pandal.name,
-      pandalId: pandal.id,
-      rating: overallRating,
-      scores: scores,
-      review: reviewText,
-      timestamp: 'Just now'
-    };
-    setActivities(prev => [newActivity, ...prev]);
+    showToast("Please login to submit ratings. (Auth coming soon)");
   };
 
-  const sendFriendRequest = (targetUserId: string) => {
-    const target = OTHER_USERS.find(u => u.id === targetUserId) || MOCK_FRIENDS.find(u => u.id === targetUserId);
-    if (!target) return;
-
-    const newFriendship: Friendship = {
-      id: `req_${Date.now()}`,
-      requester_id: currentUser.id,
-      addressee_id: targetUserId,
-      status: 'pending',
-      created_at: new Date().toISOString(),
-      addressee: target
-    };
-    setFriendships(prev => [...prev, newFriendship]);
-    showToast(`Friend request sent to @${target.username}`);
+  const sendFriendRequest = (_targetUserId: string) => {
+    showToast("Please login to add friends.");
   };
 
-  const acceptFriendRequest = (requesterId: string) => {
-    setFriendships(prev =>
-      prev.map(f => {
-        if (f.requester_id === requesterId && f.addressee_id === currentUser.id) {
-          return { ...f, status: 'accepted' as const };
-        }
-        return f;
-      })
-    );
-    const friendObj = OTHER_USERS.find(u => u.id === requesterId) || MOCK_FRIENDS.find(u => u.id === requesterId);
-    showToast(`You are now friends with @${friendObj?.username || 'user'}`);
+  const acceptFriendRequest = (_requesterId: string) => {};
+  const declineFriendRequest = (_requesterId: string) => {};
+  const removeFriend = (_friendId: string) => {};
+  
+  const searchUsers = (_query: string): Profile[] => {
+    return [];
   };
 
-  const declineFriendRequest = (requesterId: string) => {
-    setFriendships(prev => prev.filter(f => !(f.requester_id === requesterId && f.addressee_id === currentUser.id)));
-    showToast(`Request declined`);
-  };
-
-  const removeFriend = (friendId: string) => {
-    setFriendships(prev =>
-      prev.filter(f => !((f.requester_id === friendId && f.addressee_id === currentUser.id) ||
-                          (f.requester_id === currentUser.id && f.addressee_id === friendId)))
-    );
-    showToast(`Friend removed`);
-  };
-
-  const searchUsers = (query: string): Profile[] => {
-    const q = query.toLowerCase().trim();
-    if (!q) return [];
-    const allKnown = [...MOCK_FRIENDS, ...OTHER_USERS];
-    return allKnown.filter(u =>
-      u.username.toLowerCase().includes(q) || u.display_name.toLowerCase().includes(q)
-    );
-  };
-
-  const getUserStats = (userId: string): FriendStats => {
-    const userVisits = visits.filter(v => v.userId === userId);
-    const userRatingsList = ratings.filter(r => r.user_id === userId);
-    const visitedPandals = MOCK_PANDALS.filter(p => userVisits.some(v => v.pandalId === p.id));
-
-    const friendCount = friendships.filter(f =>
-      f.status === 'accepted' && (f.requester_id === userId || f.addressee_id === userId)
-    ).length;
-
+  const getUserStats = (_userId: string): FriendStats => {
     return {
-      visitedCount: userVisits.length,
-      ratingsCount: userRatingsList.length,
-      friendsCount: friendCount || 6,
-      visitedPandals,
-      recentRatings: userRatingsList
+      visitedCount: 0,
+      ratingsCount: 0,
+      friendsCount: 0,
+      visitedPandals: [],
+      recentRatings: []
     };
   };
 
@@ -439,6 +290,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <StoreContext.Provider
       value={{
+        isLoading,
         currentUser,
         settings,
         pandals,
