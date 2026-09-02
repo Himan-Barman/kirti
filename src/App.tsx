@@ -16,7 +16,7 @@ import { VoteView } from './components/vote/VoteView';
 import { LoginView } from './components/auth/LoginView';
 import { SignupView } from './components/auth/SignupView';
 import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
-import { AuthProvider } from './lib/auth';
+import { ResetPasswordView } from './components/auth/ResetPasswordView';
 import { Check } from 'lucide-react';
 
 export const AppContent: React.FC = () => {
@@ -25,8 +25,16 @@ export const AppContent: React.FC = () => {
     toastMessage,
     selectedPandal,
     selectedFriendProfile,
-    isLoading
+    isLoading,
+    setActiveTab
   } = useStore();
+
+  React.useEffect(() => {
+    // Basic URL routing for reset-password
+    if (window.location.pathname === '/reset-password' || window.location.hash.includes('type=recovery')) {
+      setActiveTab('reset-password');
+    }
+  }, [setActiveTab]);
 
   if (isLoading) {
     return (
@@ -98,6 +106,7 @@ export const AppContent: React.FC = () => {
             {activeTab === 'login' && <LoginView />}
             {activeTab === 'signup' && <SignupView />}
             {activeTab === 'forgot-password' && <ForgotPasswordView />}
+            {activeTab === 'reset-password' && <ResetPasswordView />}
           </>
         )}
       </main>
@@ -123,9 +132,5 @@ export const AppContent: React.FC = () => {
 };
 
 export default function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
+  return <AppContent />;
 }

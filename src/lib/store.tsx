@@ -30,7 +30,7 @@ interface StoreContextType {
   pendingIncomingRequests: Profile[];
   pendingOutgoingRequests: Profile[];
   activities: FriendActivity[];
-  activeTab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password';
+  activeTab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password';
   selectedPandal: PandalWithStats | null;
   selectedFriendProfile: Profile | null;
   searchQuery: string;
@@ -39,7 +39,7 @@ interface StoreContextType {
   toastMessage: string | null;
   theme: 'light' | 'dark';
 
-  setActiveTab: (tab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password') => void;
+  setActiveTab: (tab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password') => void;
   setSelectedPandal: (pandal: PandalWithStats | null) => void;
   setSelectedFriendProfile: (friend: Profile | null) => void;
   setSearchQuery: (query: string) => void;
@@ -114,7 +114,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [friendships] = useState<Friendship[]>([]);
   const [activities] = useState<FriendActivity[]>([]);
 
-  const [activeTab, setActiveTab] = useState<'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password'>('discover');
+  const [activeTab, setActiveTab] = useState<'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password'>('discover');
   const [selectedPandalId, setSelectedPandalId] = useState<string | null>(null);
   const [selectedFriendProfile, setSelectedFriendProfile] = useState<Profile | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -142,9 +142,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           console.error("Error fetching pandals:", pandalError);
         } else if (pandalData) {
           const mappedPandals: Pandal[] = pandalData.map((p: any) => {
-            const loc = p.pandal_locations?.[0];
+            const loc = Array.isArray(p.pandal_locations) ? p.pandal_locations[0] : p.pandal_locations;
             const zoneName = loc?.zones?.name || 'Unknown Zone';
-            const img = p.pandal_images?.find((i: any) => i.is_primary) || p.pandal_images?.[0];
+            const img = Array.isArray(p.pandal_images) 
+              ? (p.pandal_images.find((i: any) => i.is_primary) || p.pandal_images[0])
+              : p.pandal_images;
             
             return {
               id: p.id,

@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<{ error: Error | null }>;
+  updateUserPassword: (password: string) => Promise<{ error: Error | null }>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -69,6 +70,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(newSession);
       setUser(newSession?.user ?? null);
       
+      if (event === 'PASSWORD_RECOVERY') {
+        // We handle the UI redirect in App.tsx by reading the URL hash, 
+        // but we ensure the session is active here.
+      }
+
       if (newSession?.user) {
         // Wait a small moment to ensure the database trigger creates the profile
         if (event === 'SIGNED_IN') {
@@ -106,6 +112,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
+  const updateUserPassword = async (password: string) => {
+    const { error } = await supabase!.auth.updateUser({ password });
+    return { error };
+  };
+
   const refreshProfile = async () => {
     if (user) {
       await fetchProfile(user.id);
@@ -121,6 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signIn,
       signUp,
       signOut,
+      updateUserPassword,
       refreshProfile
     }}>
       {children}
