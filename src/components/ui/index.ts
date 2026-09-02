@@ -8,3 +8,4 @@ export * from './Avatar';
 export * from './Tabs';
 export * from './Select';
 export * from './SearchPopup';
+export * from './Toast';

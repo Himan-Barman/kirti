@@ -8,6 +8,7 @@ import type {
   FriendActivity,
   PandalWithStats
 } from '../types/database.types';
+import type { ToastData } from '../components/ui/Toast';
 import { supabase } from './supabase';
 import { useAuth } from './auth';
 
@@ -36,7 +37,8 @@ interface StoreContextType {
   searchQuery: string;
   selectedZone: string;
   sortBy: 'rating' | 'visits' | 'friends' | 'name';
-  toastMessage: string | null;
+  toasts: ToastData[];
+  toastMessage: string | null; // Keeping for backward compatibility temporarily if needed
   theme: 'light' | 'dark';
 
   setActiveTab: (tab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password') => void;
@@ -45,7 +47,8 @@ interface StoreContextType {
   setSearchQuery: (query: string) => void;
   setSelectedZone: (zone: string) => void;
   setSortBy: (sort: 'rating' | 'visits' | 'friends' | 'name') => void;
-  showToast: (msg: string) => void;
+  showToast: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
+  removeToast: (id: string) => void;
   toggleTheme: () => void;
 
   toggleVisit: (pandalId: string) => void;
@@ -129,7 +132,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedZone, setSelectedZone] = useState('all');
   const [sortBy, setSortBy] = useState<'rating' | 'visits' | 'friends' | 'name'>('rating');
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<ToastData[]>([]);
+  const [toastMessage] = useState<string | null>(null);
 
   // Fetch data from Supabase on mount
   useEffect(() => {
@@ -189,11 +193,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     fetchSupabaseData();
   }, []);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(prev => (prev === msg ? null : prev));
-    }, 2800);
+  const showToast = (msg: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts(prev => [...prev, { id, message: msg, type }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
   };
 
   const friends: Profile[] = [];
@@ -260,11 +266,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const toggleVisit = async (_pandalId: string) => {
     if (!session) {
-      showToast("Please login to log visits.");
-      setActiveTab('login');
+      showToast("Please login to log visits.", "warning");
       return;
     }
-    showToast("Visit logged! (Syncing to DB coming soon)");
+    // Optimistic UI Visit Tracking
+    showToast("Visit logged! (Syncing to DB coming soon)", "success");
   };
 
   const submitRating = async (
@@ -273,11 +279,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     _reviewText?: string
   ) => {
     if (!session) {
-      showToast("Please login to submit ratings.");
-      setActiveTab('login');
+      showToast("Please login to submit ratings.", "warning");
       return;
     }
-    showToast("Rating submitted! (Syncing to DB coming soon)");
+    // Optimistic Mock Submission
+    showToast("Rating submitted! (Syncing to DB coming soon)", "success");
   };
 
   const sendFriendRequest = async (_targetUserId: string) => {
@@ -309,11 +315,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateSettings = (newSettings: Partial<ProfileSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
-    showToast(`Privacy settings updated ✓`);
+    showToast(`Privacy settings updated ✓`, "success");
   };
 
   const updateProfile = async (_updates: Partial<Profile>) => {
-    showToast(`Profile update coming soon`);
+    showToast(`Profile update coming soon`, "info");
   };
 
   return (
@@ -335,6 +341,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         searchQuery,
         selectedZone,
         sortBy,
+        toasts,
         toastMessage,
         theme,
 
@@ -345,6 +352,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setSelectedZone,
         setSortBy,
         showToast,
+        removeToast,
         toggleTheme,
 
         toggleVisit,

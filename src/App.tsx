@@ -17,12 +17,10 @@ import { LoginView } from './components/auth/LoginView';
 import { SignupView } from './components/auth/SignupView';
 import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
 import { ResetPasswordView } from './components/auth/ResetPasswordView';
-import { Check } from 'lucide-react';
-
+import { ToastContainer } from './components/ui/Toast';
 export const AppContent: React.FC = () => {
   const {
     activeTab,
-    toastMessage,
     selectedPandal,
     selectedFriendProfile,
     isLoading,
@@ -122,13 +120,8 @@ export const AppContent: React.FC = () => {
       {/* Global Modals */}
       {selectedFriendProfile && <FriendProfileModal />}
 
-      {/* Floating Toast Notification */}
-      {toastMessage && (
-        <div className="kirti-toast">
-          <Check size={16} strokeWidth={3} />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      {/* Global Premium Toast Notifications */}
+      <ToastContainer />
     </div>
   );
 };

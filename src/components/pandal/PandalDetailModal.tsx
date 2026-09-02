@@ -95,7 +95,14 @@ export const PandalDetailModal: React.FC = () => {
             rounded="xl"
             fullWidth={true}
             icon={selectedPandal.userVisited ? <Check size={18} strokeWidth={3} /> : undefined}
-            onClick={() => toggleVisit(selectedPandal.id)}
+            onClick={() => {
+              if (user?.id === 'guest_user' || !user) {
+                setSelectedPandal(null);
+                setActiveTab('signup');
+                return;
+              }
+              toggleVisit(selectedPandal.id);
+            }}
           >
             {selectedPandal.userVisited ? '✓ Visited in your Puja Passport' : 'Mark as Visited'}
           </Button>

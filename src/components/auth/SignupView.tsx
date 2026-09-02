@@ -42,7 +42,7 @@ export const SignupView: React.FC = () => {
     } else {
       // Success
       setLoading(false);
-      showToast('Welcome to Kirti ❤️');
+      showToast('Welcome to Kirti ❤️', 'success');
       setActiveTab('discover');
     }
   };

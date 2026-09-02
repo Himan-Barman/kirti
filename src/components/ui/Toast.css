@@ -1,0 +1,173 @@
+/* ==========================================================================
+   Premium Toast Service UI
+   ========================================================================== */
+
+.kirti-toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none; /* Let clicks pass through container */
+}
+
+.kirti-toast {
+  position: relative;
+  width: 340px;
+  max-width: calc(100vw - 48px);
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05) inset;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  pointer-events: auto; /* Re-enable clicks on the toast itself */
+  transform-origin: right bottom;
+}
+
+/* Animations */
+.kirti-toast.entering {
+  animation: toastSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.kirti-toast.leaving {
+  animation: toastSlideOut 0.3s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+  }
+}
+
+/* Content Layout */
+.toast-content-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  gap: 12px;
+}
+
+.toast-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.toast-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toast-close-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+/* Icons styling */
+.toast-icon.success { color: #10B981; }
+.toast-icon.error { color: #EF4444; }
+.toast-icon.warning { color: #F59E0B; }
+.toast-icon.info { color: var(--kirti-gold); }
+
+/* Progress Bar */
+.toast-progress-track {
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.toast-progress-bar {
+  height: 100%;
+  width: 100%;
+  transform-origin: left;
+  animation: toastProgress 2.7s linear forwards;
+}
+
+.kirti-toast.success .toast-progress-bar { background: linear-gradient(90deg, #10B981, #34D399); }
+.kirti-toast.error .toast-progress-bar { background: linear-gradient(90deg, #EF4444, #F87171); }
+.kirti-toast.warning .toast-progress-bar { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+.kirti-toast.info .toast-progress-bar { background: linear-gradient(90deg, var(--kirti-gold), var(--kirti-gold-light)); }
+
+@keyframes toastProgress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .kirti-toast-container {
+    bottom: calc(env(safe-area-inset-bottom, 20px) + 70px); /* Above mobile nav */
+    right: 16px;
+    left: 16px;
+    align-items: center;
+  }
+  
+  .kirti-toast {
+    width: 100%;
+    max-width: 400px;
+    transform-origin: bottom center;
+  }
+  
+  @keyframes toastSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes toastSlideOut {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+  }
+}
