@@ -80,7 +80,7 @@ export const VoteView: React.FC = () => {
   // In production, this would come from `useStore().rankings` loaded via `get_current_rankings()` RPC.
   const rankings: PandalRanking[] = [...pandals].map((p) => {
     // Generate a stable mock Bayesian score based on avgRating
-    const score = p.avgRating * 0.95 + (Math.random() * 0.2); 
+    const score = p.avgRating > 0 ? (p.avgRating * 0.95 + (Math.random() * 0.2)) : 0; 
     const count = p.ratingCount > 0 ? p.ratingCount : Math.floor(Math.random() * 500) + 10;
     
     return {
