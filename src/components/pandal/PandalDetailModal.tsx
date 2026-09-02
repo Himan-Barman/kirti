@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useStore } from '../../lib/store';
 import { Button, Badge, Avatar } from '../ui';
 import { RatingForm, UserRating } from '../rating';
-import { ArrowLeft, MapPin, Check } from 'lucide-react';
+import { useAuth } from '../../lib/auth';
+import { ArrowLeft, MapPin, Check, Lock } from 'lucide-react';
 
 export const PandalDetailModal: React.FC = () => {
   const {
@@ -10,8 +11,10 @@ export const PandalDetailModal: React.FC = () => {
     setSelectedPandal,
     toggleVisit,
     submitRating,
-    setSelectedFriendProfile
+    setSelectedFriendProfile,
+    setActiveTab
   } = useStore();
+  const { user } = useAuth();
 
   const [isEditingRating, setIsEditingRating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,7 +111,26 @@ export const PandalDetailModal: React.FC = () => {
             </h3>
           </div>
 
-          {hasUserRated && !isEditingRating && selectedPandal.userScores ? (
+          {!user ? (
+            <div className="auth-prompt-box">
+              <Lock size={24} className="text-muted" style={{ marginBottom: '12px' }} />
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>Sign up to rate</h4>
+              <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                Create a free account to rate pandals, track your visits, and see where your friends are going.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <Button 
+                  variant="primary" 
+                  onClick={() => {
+                    setSelectedPandal(null);
+                    setActiveTab('signup');
+                  }}
+                >
+                  Create Account
+                </Button>
+              </div>
+            </div>
+          ) : hasUserRated && !isEditingRating && selectedPandal.userScores ? (
             <UserRating
               scores={selectedPandal.userScores}
               review={selectedPandal.userReview}

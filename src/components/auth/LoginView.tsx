@@ -54,7 +54,7 @@ export const LoginView: React.FC = () => {
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="input-group">
             <label htmlFor="email">Email</label>
-            <div className="input-wrapper">
+            <div className="input-wrapper beam-interactive">
               <Mail size={18} className="input-icon" />
               <input
                 id="email"
@@ -69,7 +69,7 @@ export const LoginView: React.FC = () => {
 
           <div className="input-group">
             <label htmlFor="password">Password</label>
-            <div className="input-wrapper">
+            <div className="input-wrapper beam-interactive">
               <Lock size={18} className="input-icon" />
               <input
                 id="password"
@@ -100,7 +100,7 @@ export const LoginView: React.FC = () => {
             </button>
           </div>
 
-          <button type="submit" className="auth-submit-btn" disabled={loading}>
+          <button type="submit" className="auth-submit-btn beam-interactive" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>

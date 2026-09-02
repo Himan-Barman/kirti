@@ -1,9 +1,11 @@
 import React from 'react';
 import { useStore } from '../../lib/store';
-import { Compass, MapPin, Users, Award, User } from 'lucide-react';
+import { useAuth } from '../../lib/auth';
+import { Compass, MapPin, Users, Award, User, UserPlus } from 'lucide-react';
 
 export const MobileNav: React.FC = () => {
   const { activeTab, setActiveTab, pendingIncomingRequests } = useStore();
+  const { user } = useAuth();
 
   return (
     <nav className="mobile-bottom-nav">
@@ -27,18 +29,20 @@ export const MobileNav: React.FC = () => {
         <span>Map</span>
       </button>
 
-      <button
-        className={`mobile-nav-btn ${activeTab === 'friends' ? 'active' : ''}`}
-        onClick={() => setActiveTab('friends')}
-      >
-        <div className="nav-icon-wrap">
-          <Users size={19} />
-          {pendingIncomingRequests.length > 0 && (
-            <span className="mobile-badge">{pendingIncomingRequests.length}</span>
-          )}
-        </div>
-        <span>Friends</span>
-      </button>
+      {user && (
+        <button
+          className={`mobile-nav-btn ${activeTab === 'friends' ? 'active' : ''}`}
+          onClick={() => setActiveTab('friends')}
+        >
+          <div className="nav-icon-wrap">
+            <Users size={19} />
+            {pendingIncomingRequests.length > 0 && (
+              <span className="mobile-badge">{pendingIncomingRequests.length}</span>
+            )}
+          </div>
+          <span>Friends</span>
+        </button>
+      )}
 
       <button
         className={`mobile-nav-btn ${activeTab === 'vote' ? 'active' : ''}`}
@@ -50,15 +54,27 @@ export const MobileNav: React.FC = () => {
         <span>Vote</span>
       </button>
 
-      <button
-        className={`mobile-nav-btn ${activeTab === 'profile' ? 'active' : ''}`}
-        onClick={() => setActiveTab('profile')}
-      >
-        <div className="nav-icon-wrap">
-          <User size={19} />
-        </div>
-        <span>Profile</span>
-      </button>
+      {user ? (
+        <button
+          className={`mobile-nav-btn ${activeTab === 'profile' ? 'active' : ''}`}
+          onClick={() => setActiveTab('profile')}
+        >
+          <div className="nav-icon-wrap">
+            <User size={19} />
+          </div>
+          <span>Profile</span>
+        </button>
+      ) : (
+        <button
+          className={`mobile-nav-btn ${activeTab === 'signup' ? 'active' : ''}`}
+          onClick={() => setActiveTab('signup')}
+        >
+          <div className="nav-icon-wrap">
+            <UserPlus size={19} />
+          </div>
+          <span>Sign Up</span>
+        </button>
+      )}
 
       <style>{`
         .mobile-bottom-nav {

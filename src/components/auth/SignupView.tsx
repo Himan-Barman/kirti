@@ -63,7 +63,7 @@ export const SignupView: React.FC = () => {
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="input-group">
             <label htmlFor="signup-email">Email</label>
-            <div className="input-wrapper">
+            <div className="input-wrapper beam-interactive">
               <Mail size={18} className="input-icon" />
               <input
                 id="signup-email"
@@ -78,7 +78,7 @@ export const SignupView: React.FC = () => {
 
           <div className="input-group">
             <label htmlFor="signup-password">Password</label>
-            <div className="input-wrapper">
+            <div className="input-wrapper beam-interactive">
               <Lock size={18} className="input-icon" />
               <input
                 id="signup-password"
@@ -100,7 +100,7 @@ export const SignupView: React.FC = () => {
             </div>
           </div>
 
-          <button type="submit" className="auth-submit-btn" disabled={loading}>
+          <button type="submit" className="auth-submit-btn beam-interactive" disabled={loading}>
             {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>

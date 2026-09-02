@@ -66,7 +66,7 @@ export const ResetPasswordView: React.FC = () => {
               </p>
             </div>
             <button 
-              className="auth-submit-btn"
+              className="auth-submit-btn beam-interactive"
               onClick={() => setActiveTab('login' as any)}
             >
               Continue to Login
@@ -86,7 +86,7 @@ export const ResetPasswordView: React.FC = () => {
             <form onSubmit={handleSubmit} className="auth-form">
               <div className="input-group">
                 <label htmlFor="new-password">New Password</label>
-                <div className="input-wrapper">
+                <div className="input-wrapper beam-interactive">
                   <Lock size={18} className="input-icon" />
                   <input
                     id="new-password"
@@ -110,7 +110,7 @@ export const ResetPasswordView: React.FC = () => {
 
               <div className="input-group">
                 <label htmlFor="confirm-password">Confirm Password</label>
-                <div className="input-wrapper">
+                <div className="input-wrapper beam-interactive">
                   <Lock size={18} className="input-icon" />
                   <input
                     id="confirm-password"
@@ -132,7 +132,7 @@ export const ResetPasswordView: React.FC = () => {
                 </div>
               </div>
 
-              <button type="submit" className="auth-submit-btn" disabled={loading}>
+              <button type="submit" className="auth-submit-btn beam-interactive" disabled={loading}>
                 {loading ? 'Updating...' : 'Reset Password'}
               </button>
             </form>

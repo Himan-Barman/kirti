@@ -49,13 +49,15 @@ export const AppContent: React.FC = () => {
     );
   }
 
+  const isAuthTab = ['login', 'signup', 'forgot-password', 'reset-password'].includes(activeTab);
+
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${isAuthTab ? 'auth-mode' : ''}`}>
       {/* Top Navigation Bar with Dark Mode Toggle & Search Popup */}
-      <Navbar />
+      {!isAuthTab && <Navbar />}
 
       {/* Main View Container */}
-      <main className="main-content">
+      <main className={`main-content ${isAuthTab ? 'auth-main' : ''}`}>
         {selectedPandal ? (
           <div className="pandal-detail-view-wrapper">
             <PandalDetailModal />
@@ -112,10 +114,10 @@ export const AppContent: React.FC = () => {
       </main>
 
       {/* Professional Footer */}
-      <Footer />
+      {!isAuthTab && <Footer />}
 
       {/* Mobile Navigation Bottom Bar */}
-      <MobileNav />
+      {!isAuthTab && <MobileNav />}
 
       {/* Global Modals */}
       {selectedFriendProfile && <FriendProfileModal />}

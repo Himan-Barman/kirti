@@ -1,5 +1,6 @@
 import React from 'react';
 import { useStore } from '../../lib/store';
+import { useAuth } from '../../lib/auth';
 import { SearchPopup, Avatar } from '../ui';
 import { Compass, Users, Award, MapPin, Sun, Moon } from 'lucide-react';
 
@@ -13,6 +14,7 @@ export const Navbar: React.FC = () => {
     theme,
     toggleTheme
   } = useStore();
+  const { user } = useAuth();
 
   const visitedCount = pandals.filter(p => p.userVisited).length;
 
@@ -53,16 +55,18 @@ export const Navbar: React.FC = () => {
               <span>Map</span>
             </button>
 
-            <button
-              className={`nav-link ${activeTab === 'friends' ? 'active' : ''}`}
-              onClick={() => setActiveTab('friends')}
-            >
-              <Users size={16} />
-              <span>Friends</span>
-              {pendingIncomingRequests.length > 0 && (
-                <span className="badge-count">{pendingIncomingRequests.length}</span>
-              )}
-            </button>
+            {user && (
+              <button
+                className={`nav-link ${activeTab === 'friends' ? 'active' : ''}`}
+                onClick={() => setActiveTab('friends')}
+              >
+                <Users size={16} />
+                <span>Friends</span>
+                {pendingIncomingRequests.length > 0 && (
+                  <span className="badge-count">{pendingIncomingRequests.length}</span>
+                )}
+              </button>
+            )}
 
             <button
               className={`nav-link ${activeTab === 'vote' ? 'active' : ''}`}
@@ -87,18 +91,28 @@ export const Navbar: React.FC = () => {
             )}
           </button>
 
-          {/* User Profile Pill */}
-          <button
-            className={`profile-pill ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveTab('profile')}
-            title="My Puja Passport"
-          >
-            <Avatar src={currentUser.avatar_url} alt={currentUser.display_name} size="xs" />
-            <span className="nav-journey-badge">
-              <span className="journey-dot"></span>
-              {visitedCount} Visited
-            </span>
-          </button>
+          {/* User Profile / Login */}
+          {user ? (
+            <button
+              className={`profile-pill ${activeTab === 'profile' ? 'active' : ''}`}
+              onClick={() => setActiveTab('profile')}
+              title="My Puja Passport"
+            >
+              <Avatar src={currentUser.avatar_url} alt={currentUser.display_name} size="xs" />
+              <span className="nav-journey-badge">
+                <span className="journey-dot"></span>
+                {visitedCount} Visited
+              </span>
+            </button>
+          ) : (
+            <button
+              className="auth-submit-btn"
+              style={{ padding: '6px 14px', margin: 0, height: '36px', width: 'auto', fontSize: '14px', borderRadius: '20px' }}
+              onClick={() => setActiveTab('signup')}
+            >
+              Sign Up
+            </button>
+          )}
         </div>
       </div>
 

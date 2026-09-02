@@ -47,7 +47,7 @@ export const ForgotPasswordView: React.FC = () => {
               </p>
             </div>
             <button 
-              className="auth-submit-btn"
+              className="auth-submit-btn beam-interactive"
               onClick={() => setActiveTab('login' as any)}
             >
               Back to Sign In
@@ -70,7 +70,7 @@ export const ForgotPasswordView: React.FC = () => {
             <form onSubmit={handleSubmit} className="auth-form">
               <div className="input-group">
                 <label htmlFor="reset-email">Email</label>
-                <div className="input-wrapper">
+                <div className="input-wrapper beam-interactive">
                   <Mail size={18} className="input-icon" />
                   <input
                     id="reset-email"
@@ -83,7 +83,7 @@ export const ForgotPasswordView: React.FC = () => {
                 </div>
               </div>
 
-              <button type="submit" className="auth-submit-btn" disabled={loading}>
+              <button type="submit" className="auth-submit-btn beam-interactive" disabled={loading}>
                 {loading ? 'Sending link...' : 'Send Reset Link'}
               </button>
             </form>
