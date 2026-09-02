@@ -31,7 +31,7 @@ interface StoreContextType {
   pendingIncomingRequests: Profile[];
   pendingOutgoingRequests: Profile[];
   activities: FriendActivity[];
-  activeTab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password';
+  activeTab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password' | 'menu';
   selectedPandal: PandalWithStats | null;
   selectedFriendProfile: Profile | null;
   searchQuery: string;
@@ -118,7 +118,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [friendships] = useState<Friendship[]>([]);
   const [activities] = useState<FriendActivity[]>([]);
 
-  const [activeTab, setActiveTabState] = useState<'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password'>(() => {
+  const [activeTab, setActiveTabState] = useState<'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password' | 'menu'>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.TAB);
     return (saved as any) || 'discover';
   });
