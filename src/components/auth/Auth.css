@@ -170,6 +170,29 @@
   cursor: not-allowed;
 }
 
+/* Prevent Chrome/Edge/Safari autofill from turning input fields white */
+.input-wrapper input:-webkit-autofill,
+.input-wrapper input:-webkit-autofill:hover,
+.input-wrapper input:-webkit-autofill:focus,
+.input-wrapper input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #131316 inset !important;
+  box-shadow: 0 0 0 1000px #131316 inset !important;
+  -webkit-text-fill-color: #F9FAFB !important;
+  caret-color: #F9FAFB !important;
+  transition: background-color 5000s ease-in-out 0s;
+  border-radius: 12px;
+}
+
+[data-theme="light"] .input-wrapper input:-webkit-autofill,
+[data-theme="light"] .input-wrapper input:-webkit-autofill:hover,
+[data-theme="light"] .input-wrapper input:-webkit-autofill:focus,
+[data-theme="light"] .input-wrapper input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #0A0A0A !important;
+  caret-color: #0A0A0A !important;
+}
+
 .password-toggle {
   position: absolute;
   right: 12px;
@@ -291,5 +314,40 @@
   .auth-card {
     padding: 32px 24px;
     border-radius: 12px;
+  }
+}
+
+/* Auth Skip Button */
+.auth-skip-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 50;
+  transition: all 0.3s ease;
+}
+
+.auth-skip-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .auth-skip-btn {
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
   }
 }

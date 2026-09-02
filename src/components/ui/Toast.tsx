@@ -15,10 +15,10 @@ interface ToastItemProps {
 }
 
 const ICONS = {
-  success: <CheckCircle2 size={18} className="toast-icon success" />,
-  error: <AlertCircle size={18} className="toast-icon error" />,
-  warning: <AlertTriangle size={18} className="toast-icon warning" />,
-  info: <Info size={18} className="toast-icon info" />
+  success: <CheckCircle2 size={15} className="toast-icon success" strokeWidth={2.2} />,
+  error: <AlertCircle size={15} className="toast-icon error" strokeWidth={2.2} />,
+  warning: <AlertTriangle size={15} className="toast-icon warning" strokeWidth={2.2} />,
+  info: <Info size={15} className="toast-icon info" strokeWidth={2.2} />
 };
 
 const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
@@ -49,8 +49,8 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
         <div className="toast-message">
           {toast.message}
         </div>
-        <button className="toast-close-btn" onClick={() => { setIsLeaving(true); setTimeout(() => onRemove(toast.id), 300); }}>
-          <X size={14} />
+        <button className="toast-close-btn" onClick={() => { setIsLeaving(true); setTimeout(() => onRemove(toast.id), 250); }} aria-label="Close notification">
+          <X size={12} strokeWidth={2.2} />
         </button>
       </div>
       <div className="toast-progress-track">

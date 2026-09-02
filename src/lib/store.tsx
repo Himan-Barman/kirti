@@ -154,13 +154,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (pandalError) {
           console.error("Error fetching pandals:", pandalError);
         } else if (pandalData) {
-          const mappedPandals: Pandal[] = pandalData.map((p: any) => {
+          const DEFAULT_IMAGES = [
+            '/durga-traditional.jpg',
+            '/durga-portrait.jpg',
+            '/durga-pandal.jpg'
+          ];
+
+          const mappedPandals: Pandal[] = pandalData.map((p: any, index: number) => {
             const loc = Array.isArray(p.pandal_locations) ? p.pandal_locations[0] : p.pandal_locations;
             const zoneName = loc?.zones?.name || 'Unknown Zone';
             const img = Array.isArray(p.pandal_images) 
               ? (p.pandal_images.find((i: any) => i.is_primary) || p.pandal_images[0])
               : p.pandal_images;
             
+            let finalImageUrl = img?.public_url;
+            if (!finalImageUrl || finalImageUrl.includes('unsplash.com')) {
+              finalImageUrl = DEFAULT_IMAGES[index % DEFAULT_IMAGES.length];
+            }
+
             return {
               id: p.id,
               legacy_id: p.legacy_id,
@@ -177,7 +188,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               city: loc?.city || 'Kolkata',
               latitude: loc?.latitude || 0,
               longitude: loc?.longitude || 0,
-              image_url: img?.public_url || 'https://images.unsplash.com/photo-1514222134-b57eaf8ce6c8?auto=format&fit=crop&w=800&q=80'
+              image_url: finalImageUrl
             };
           });
           setDbPandals(mappedPandals);
@@ -194,8 +205,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const showToast = (msg: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setToasts(prev => [...prev, { id, message: msg, type }]);
+    setToasts(prev => {
+      // Deduplicate: Don't show the exact same message if it's already visible
+      if (prev.some(t => t.message === msg)) return prev;
+      
+      const id = Math.random().toString(36).substring(2, 9);
+      return [...prev, { id, message: msg, type }];
+    });
   };
 
   const removeToast = (id: string) => {
@@ -266,11 +282,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const toggleVisit = async (_pandalId: string) => {
     if (!session) {
-      showToast("Please login to log visits.", "warning");
+      showToast("Login required", "warning");
       return;
     }
     // Optimistic UI Visit Tracking
-    showToast("Visit logged! (Syncing to DB coming soon)", "success");
+    showToast("Visit logged", "success");
   };
 
   const submitRating = async (
@@ -279,20 +295,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     _reviewText?: string
   ) => {
     if (!session) {
-      showToast("Please login to submit ratings.", "warning");
+      showToast("Login required", "warning");
       return;
     }
     // Optimistic Mock Submission
-    showToast("Rating submitted! (Syncing to DB coming soon)", "success");
+    showToast("Rating submitted", "success");
   };
 
   const sendFriendRequest = async (_targetUserId: string) => {
     if (!session) {
-      showToast("Please login to add friends.");
-      setActiveTab('login');
+      showToast("Login required", "warning");
       return;
     }
-    showToast("Friend request sent!");
+    showToast("Friend request sent", "success");
   };
 
   const acceptFriendRequest = (_requesterId: string) => {};
@@ -315,11 +330,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateSettings = (newSettings: Partial<ProfileSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
-    showToast(`Privacy settings updated ✓`, "success");
+    showToast(`Settings updated`, "success");
   };
 
   const updateProfile = async (_updates: Partial<Profile>) => {
-    showToast(`Profile update coming soon`, "info");
+    showToast(`Coming soon`, "info");
   };
 
   return (

@@ -49,6 +49,14 @@ export const Tabs: React.FC<TabsProps> = ({
           gap: 4px;
           user-select: none;
           padding: 4px;
+          max-width: 100%;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          box-sizing: border-box;
+        }
+        .ui-tabs::-webkit-scrollbar {
+          display: none;
         }
 
         /* Rounded */
@@ -77,6 +85,14 @@ export const Tabs: React.FC<TabsProps> = ({
           transition: all 0.18s ease;
           font-family: var(--font-sans);
           white-space: nowrap;
+          flex-shrink: 0;
+        }
+        @media (max-width: 600px) {
+          .tabs-segmented .tab-btn {
+            padding: 6px 11px;
+            font-size: 12px;
+            gap: 4px;
+          }
         }
         .tabs-segmented .tab-btn:hover {
           color: var(--text-primary);

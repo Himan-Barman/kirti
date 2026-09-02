@@ -10,7 +10,8 @@ import {
   ChevronRight,
   TrendingUp,
   Vote,
-  ClipboardList
+  ClipboardList,
+  Search
 } from 'lucide-react';
 import type { RatingCategoryCode } from '../../types/database.types';
 import type { PandalRanking } from '../../types/ranking.types';
@@ -64,6 +65,8 @@ const RANKING_CATEGORIES: RankingCategory[] = [
 export const VoteView: React.FC = () => {
   const { pandals, setSelectedPandal } = useStore();
 
+  const [voteSearch, setVoteSearch] = useState('');
+
   // View Switcher: 'cast_vote' vs 'pandals_ranking'
   const [activeView, setActiveView] = useState<'cast_vote' | 'pandals_ranking'>('cast_vote');
 
@@ -74,14 +77,13 @@ export const VoteView: React.FC = () => {
   const [rankingPage, setRankingPage] = useState<number>(1);
   const itemsPerPage = 20;
 
-  const activeCategory = RANKING_CATEGORIES.find(c => c.id === selectedCatId) || RANKING_CATEGORIES[0];
-
   // For the actual statistical engine, we'll mock the PandalRanking array here.
   // In production, this would come from `useStore().rankings` loaded via `get_current_rankings()` RPC.
-  const rankings: PandalRanking[] = [...pandals].map((p) => {
-    // Generate a stable mock Bayesian score based on avgRating
-    const score = p.avgRating > 0 ? (p.avgRating * 0.95 + (Math.random() * 0.2)) : 0; 
-    const count = p.ratingCount > 0 ? p.ratingCount : Math.floor(Math.random() * 500) + 10;
+  const filteredPandals = pandals.filter(p => p.name.toLowerCase().includes(voteSearch.toLowerCase()) || p.address.toLowerCase().includes(voteSearch.toLowerCase()));
+
+  const rankings: PandalRanking[] = [...filteredPandals].map((p) => {
+    const score = p.avgRating; 
+    const count = p.ratingCount;
     
     return {
       id: `rank_${p.id}`,
@@ -155,8 +157,24 @@ export const VoteView: React.FC = () => {
         </div>
       </div>
 
+      <div className="vote-search-wrapper" style={{ marginBottom: '16px' }}>
+        <div className="search-bar-glass beam-interactive" style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '10px 16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <Search size={16} className="text-muted" style={{ marginRight: '8px' }} />
+          <input 
+            type="text" 
+            placeholder="Search pandals to rate..." 
+            value={voteSearch}
+            onChange={(e) => {
+              setVoteSearch(e.target.value);
+              setRankingPage(1);
+            }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', width: '100%', outline: 'none', fontSize: '14px' }}
+          />
+        </div>
+      </div>
+
       {/* Category Selector Pills (Shared by both views) */}
-      <div className="category-tabs-wrap" style={{ overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
+      <div className="category-tabs-wrap" style={{ overflowX: 'auto', paddingBottom: '12px', scrollbarWidth: 'none' }}>
         <Tabs 
           variant="pills"
           activeId={selectedCatId}
@@ -180,7 +198,7 @@ export const VoteView: React.FC = () => {
           <div className="nominees-section">
 
             <div className="nominees-grid">
-              {pandals.slice(0, 20).map((pandal) => {
+              {filteredPandals.slice(0, 40).map((pandal) => {
                 return (
                   <Card
                     key={pandal.id}
@@ -215,12 +233,7 @@ export const VoteView: React.FC = () => {
           ======================================================================= */}
       {activeView === 'pandals_ranking' && (
         <div className="ranking-view-section">
-          <div className="ranking-header-bar">
-            <div>
-              <h3 className="section-title">TOP {activeCategory.name.toUpperCase()} PANDALS</h3>
-              <p className="section-sub">Bayesian-adjusted for fairness. Updated 4m ago.</p>
-            </div>
-          </div>
+
 
           <div className="nominees-grid">
             {paginatedRankings.map((pandalRank) => {

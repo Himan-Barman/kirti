@@ -113,12 +113,13 @@ export const PandalCard: React.FC<PandalCardProps> = ({ pandal }) => {
           display: flex;
           flex-direction: column;
           height: 100%;
+          width: 100%;
           background: var(--bg-card);
           border-radius: var(--radius-2xl);
           border: 1px solid var(--border);
-          overflow: hidden;
           cursor: pointer;
           position: relative;
+          transition: transform 0.22s ease, box-shadow 0.22s ease;
         }
         .pandal-img-wrap {
           position: relative;
@@ -233,6 +234,22 @@ export const PandalCard: React.FC<PandalCardProps> = ({ pandal }) => {
           gap: 4px;
           font-size: 11px;
           color: var(--text-muted);
+        }
+        @media (max-width: 480px) {
+          .pandal-content {
+            padding: 14px;
+            gap: 10px;
+          }
+          .pandal-img-wrap {
+            height: 180px;
+          }
+          .pandal-footer {
+            padding-top: 10px;
+            gap: 6px;
+          }
+          .friends-count-text {
+            font-size: 10.5px;
+          }
         }
       `}</style>
     </div>

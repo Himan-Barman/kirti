@@ -261,11 +261,15 @@ export const SearchPopup: React.FC<SearchPopupProps> = ({
           overflow: hidden;
           animation: searchPopupEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
           .search-dropdown-menu {
-            min-width: 300px;
-            left: -20px;
-            right: -20px;
+            position: fixed;
+            top: 64px;
+            left: 12px;
+            right: 12px;
+            min-width: unset;
+            max-height: calc(100vh - 140px);
+            z-index: 1100;
           }
         }
         .dropdown-header {

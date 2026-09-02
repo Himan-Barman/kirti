@@ -83,14 +83,16 @@ export const MobileNav: React.FC = () => {
           bottom: 0;
           left: 0;
           right: 0;
-          height: 68px;
+          height: calc(62px + env(safe-area-inset-bottom, 0px));
           background: var(--bg-header);
-          backdrop-filter: blur(16px);
+          backdrop-filter: blur(20px) saturate(180%);
+          -webkit-backdrop-filter: blur(20px) saturate(180%);
           border-top: 1px solid var(--border);
           z-index: 1000;
-          align-items: center;
+          align-items: flex-start;
           justify-content: space-around;
-          padding: 0 8px;
+          padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)) 8px;
+          box-sizing: border-box;
         }
         @media (max-width: 768px) {
           .mobile-bottom-nav {
@@ -107,13 +109,14 @@ export const MobileNav: React.FC = () => {
           border: none;
           color: var(--text-muted);
           font-family: var(--font-sans);
-          font-size: 11px;
+          font-size: 10.5px;
           font-weight: 600;
-          padding: 6px 10px;
+          padding: 6px 12px;
           border-radius: var(--radius-md);
           cursor: pointer;
-          transition: all 0.15s ease;
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
+          -webkit-tap-highlight-color: transparent;
         }
         .mobile-nav-btn:hover,
         .mobile-nav-btn.active {
@@ -121,12 +124,14 @@ export const MobileNav: React.FC = () => {
         }
         .mobile-nav-btn.active .nav-icon-wrap {
           color: var(--kirti-red);
+          transform: translateY(-1px);
         }
         .nav-icon-wrap {
           position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: transform 0.18s ease;
         }
         .mobile-badge {
           position: absolute;

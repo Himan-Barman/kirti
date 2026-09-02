@@ -139,23 +139,30 @@ export const Footer: React.FC = () => {
         .k-footer {
           background: var(--bg-card);
           border-top: 1px solid var(--border);
-          padding: 56px 20px 36px 20px;
+          padding: 56px 0 36px 0;
           margin-top: 60px;
           color: var(--text-primary);
           transition: background-color 0.25s ease, border-color 0.25s ease;
         }
         @media (max-width: 768px) {
           .k-footer {
-            padding: 40px 16px 110px 16px;
+            padding: 40px 0 110px 0;
             margin-top: 40px;
           }
         }
         .footer-container {
-          max-width: 1240px;
+          max-width: 1280px;
           margin: 0 auto;
+          padding: 0 32px;
           display: flex;
           flex-direction: column;
           gap: 48px;
+          box-sizing: border-box;
+        }
+        @media (max-width: 768px) {
+          .footer-container {
+            padding: 0 16px;
+          }
         }
         .footer-grid {
           display: grid;

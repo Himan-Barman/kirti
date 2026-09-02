@@ -250,6 +250,18 @@ export const FriendJourneyCompare: React.FC<FriendJourneyCompareProps> = ({ show
           border: 1px solid var(--border);
           border-radius: var(--radius-full);
         }
+        @media (max-width: 600px) {
+          .compare-header {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .my-smart-rank-capsule {
+            width: 100%;
+            border-radius: var(--radius-lg);
+            box-sizing: border-box;
+            flex-wrap: wrap;
+          }
+        }
         .rank-badge-pill {
           display: inline-flex;
           align-items: baseline;
@@ -284,7 +296,7 @@ export const FriendJourneyCompare: React.FC<FriendJourneyCompareProps> = ({ show
         }
         .podium-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 14px;
         }
         @media (max-width: 800px) {

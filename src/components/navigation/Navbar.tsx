@@ -2,7 +2,7 @@ import React from 'react';
 import { useStore } from '../../lib/store';
 import { useAuth } from '../../lib/auth';
 import { SearchPopup, Avatar } from '../ui';
-import { Compass, Users, Award, MapPin, Sun, Moon } from 'lucide-react';
+import { Compass, Users, Award, MapPin, Sun, Moon, Search, X } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const {
@@ -16,12 +16,13 @@ export const Navbar: React.FC = () => {
   } = useStore();
   const { user } = useAuth();
 
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = React.useState(false);
   const visitedCount = pandals.filter(p => p.userVisited).length;
 
   return (
     <header className="k-header">
       <div className="header-container">
-        {/* Brand Logo (Durga Puja Social text removed) */}
+        {/* Brand Logo */}
         <div className="brand-group" onClick={() => setActiveTab('discover')}>
           <div className="logo-badge">
             <span className="logo-text">KIRTI</span>
@@ -30,13 +31,22 @@ export const Navbar: React.FC = () => {
           <span className="logo-bengali-mark">কীর্তি</span>
         </div>
 
-        {/* Global SearchBar with Instant Dropdown Popup */}
+        {/* Global SearchBar with Instant Dropdown Popup (Desktop) */}
         <div className="header-search">
           <SearchPopup placeholder="Search pandals, artists, locations, themes..." />
         </div>
 
         {/* Right Nav Actions */}
         <div className="header-right-actions">
+          {/* Mobile Search Toggle Button */}
+          <button
+            className="mobile-search-toggle"
+            onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+            title="Search"
+            aria-label="Search"
+          >
+            {isMobileSearchOpen ? <X size={16} /> : <Search size={16} />}
+          </button>
           {/* Navigation Tabs (Desktop) */}
           <nav className="desktop-nav">
             <button
@@ -116,6 +126,13 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
+      {/* Expandable Mobile Search Drawer */}
+      {isMobileSearchOpen && (
+        <div className="mobile-search-bar-drawer">
+          <SearchPopup placeholder="Search pandals, artists, locations..." />
+        </div>
+      )}
+
       <style>{`
         .k-header {
           position: sticky;
@@ -128,14 +145,54 @@ export const Navbar: React.FC = () => {
           transition: background-color 0.25s ease, border-color 0.25s ease;
         }
         .header-container {
-          max-width: 1240px;
+          max-width: 1280px;
           margin: 0 auto;
-          padding: 0 20px;
+          padding: 0 32px;
           height: 68px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 20px;
+          box-sizing: border-box;
+        }
+        @media (max-width: 768px) {
+          .header-container {
+            height: 56px;
+            padding: 0 14px;
+            gap: 10px;
+          }
+        }
+        .mobile-search-toggle {
+          display: none;
+          width: 36px;
+          height: 36px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          color: var(--text-primary);
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.18s ease;
+        }
+        .mobile-search-toggle:hover {
+          background: var(--bg-card-subtle);
+          border-color: var(--border-focus);
+        }
+        @media (max-width: 900px) {
+          .mobile-search-toggle {
+            display: flex;
+          }
+        }
+        .mobile-search-bar-drawer {
+          padding: 8px 14px 12px 14px;
+          background: var(--bg-header);
+          border-top: 1px solid var(--border-subtle);
+          animation: searchDrawerSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes searchDrawerSlide {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         .brand-group {
           display: flex;
@@ -143,6 +200,7 @@ export const Navbar: React.FC = () => {
           gap: 8px;
           cursor: pointer;
           user-select: none;
+          flex-shrink: 0;
         }
         .logo-badge {
           display: flex;
@@ -154,6 +212,11 @@ export const Navbar: React.FC = () => {
           font-weight: 800;
           letter-spacing: -0.04em;
           color: var(--text-primary);
+        }
+        @media (max-width: 768px) {
+          .logo-text {
+            font-size: 20px;
+          }
         }
         .logo-dot {
           display: inline-block;

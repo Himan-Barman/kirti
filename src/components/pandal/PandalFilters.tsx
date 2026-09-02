@@ -107,6 +107,20 @@ export const PandalFilters: React.FC = () => {
           align-items: center;
           gap: 10px;
         }
+        @media (max-width: 600px) {
+          .controls-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+          }
+          .controls-right {
+            width: 100%;
+            justify-content: space-between;
+          }
+          .view-toggle {
+            display: none;
+          }
+        }
         .view-toggle {
           display: flex;
           background: var(--bg-card-subtle);

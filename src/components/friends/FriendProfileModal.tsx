@@ -243,6 +243,21 @@ export const FriendProfileModal: React.FC = () => {
           padding-left: 14px;
           max-width: 150px;
         }
+        @media (max-width: 480px) {
+          .journey-comparison-pill {
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+          }
+          .compare-verdict {
+            border-left: none;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            padding-left: 0;
+            padding-top: 8px;
+            max-width: none;
+            text-align: center;
+          }
+        }
         .friend-section-block {
           border-top: 1px solid var(--border);
           padding-top: 16px;

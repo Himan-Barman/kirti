@@ -18,6 +18,9 @@ import { SignupView } from './components/auth/SignupView';
 import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
 import { ResetPasswordView } from './components/auth/ResetPasswordView';
 import { ToastContainer } from './components/ui/Toast';
+import { X } from 'lucide-react';
+import { initLenis, scrollToTop } from './lib/lenis';
+
 export const AppContent: React.FC = () => {
   const {
     activeTab,
@@ -28,11 +31,19 @@ export const AppContent: React.FC = () => {
   } = useStore();
 
   React.useEffect(() => {
+    // Initialize Lenis smooth scroll
+    initLenis();
+
     // Basic URL routing for reset-password
     if (window.location.pathname === '/reset-password' || window.location.hash.includes('type=recovery')) {
       setActiveTab('reset-password');
     }
   }, [setActiveTab]);
+
+  // Scroll to top immediately on tab change or pandal select
+  React.useEffect(() => {
+    scrollToTop(true);
+  }, [activeTab, selectedPandal]);
 
   if (isLoading) {
     return (
@@ -51,6 +62,17 @@ export const AppContent: React.FC = () => {
 
   return (
     <div className={`app-layout ${isAuthTab ? 'auth-mode' : ''}`}>
+      {/* Auth Skip Button */}
+      {isAuthTab && (
+        <button 
+          className="auth-skip-btn" 
+          onClick={() => setActiveTab('discover')}
+          title="Skip and view as guest"
+        >
+          <X size={24} />
+        </button>
+      )}
+
       {/* Top Navigation Bar with Dark Mode Toggle & Search Popup */}
       {!isAuthTab && <Navbar />}
 

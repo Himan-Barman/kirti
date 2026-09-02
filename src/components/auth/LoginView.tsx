@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../lib/auth';
 import { useStore } from '../../lib/store';
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import './Auth.css';
 
 export const LoginView: React.FC = () => {
@@ -12,28 +12,26 @@ export const LoginView: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
 
     setLoading(true);
-    setError(null);
 
     const { error: signInError } = await signIn(email, password);
 
     if (signInError) {
       if (signInError.message.includes('Invalid login credentials')) {
-        setError('Email or password is incorrect.');
+        showToast('Invalid email or password', 'error');
       } else {
-        setError('Unable to sign in right now. Please try again.');
+        showToast('Unable to sign in. Please try again', 'error');
       }
       setLoading(false);
     } else {
       // Success
       setLoading(false);
-      showToast('Welcome back to Kirti ❤️');
+      showToast('Welcome back', 'success');
       setActiveTab('discover');
     }
   };
@@ -43,13 +41,6 @@ export const LoginView: React.FC = () => {
       <div className="auth-card">
         <h1 className="auth-title">KIRTI</h1>
         <p className="auth-subtitle">Welcome back</p>
-
-        {error && (
-          <div className="auth-error">
-            <AlertCircle size={16} />
-            <span>{error}</span>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="input-group">

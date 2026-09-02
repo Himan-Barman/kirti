@@ -234,6 +234,22 @@ export const PandalDetailModal: React.FC = () => {
           flex-direction: column;
           gap: 28px;
         }
+        @media (max-width: 768px) {
+          .modal-hero {
+            height: 200px;
+            border-radius: var(--radius-xl);
+          }
+          .modal-inner {
+            padding: 16px 0;
+            gap: 20px;
+          }
+          .pandal-name-large {
+            font-size: 20px;
+          }
+          .friends-grid-mini {
+            grid-template-columns: 1fr;
+          }
+        }
         .pandal-main-info {
           display: flex;
           flex-direction: column;

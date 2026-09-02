@@ -196,6 +196,18 @@ export const PandalMap: React.FC = () => {
           backdrop-filter: blur(12px);
           background: var(--bg-header) !important;
         }
+        @media (max-width: 768px) {
+          .map-bottom-drawer {
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            padding: 8px 10px;
+            gap: 6px;
+          }
+          .drawer-hint {
+            display: none;
+          }
+        }
         .map-drawer-header {
           display: flex;
           align-items: center;

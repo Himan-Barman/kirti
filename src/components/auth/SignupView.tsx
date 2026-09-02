@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../lib/auth';
 import { useStore } from '../../lib/store';
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import './Auth.css';
 
 export const SignupView: React.FC = () => {
@@ -12,37 +12,35 @@ export const SignupView: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
     
     if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+      showToast('Password must be at least 8 characters', 'warning');
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     const { error: signUpError } = await signUp(email, password);
 
     if (signUpError) {
-      if (signUpError.message.toLowerCase().includes('already registered') || signUpError.message.toLowerCase().includes('exists')) {
-        setError('An account with this email may already exist. Try signing in instead.');
-      } else if (signUpError.message.toLowerCase().includes('weak')) {
-        setError('Password must meet the minimum security requirements.');
-      } else if (signUpError.message.toLowerCase().includes('valid email')) {
-        setError('Enter a valid email address.');
-      } else {
-        setError('Couldn\'t create your account. Please check your connection and try again.');
+      let msg = "Couldn't create account. Try again";
+      const errLower = signUpError.message.toLowerCase();
+      if (errLower.includes('already registered') || errLower.includes('exists')) {
+        msg = 'Account already exists. Please sign in';
+      } else if (errLower.includes('weak')) {
+        msg = 'Password is too weak';
+      } else if (errLower.includes('valid email')) {
+        msg = 'Enter a valid email address';
       }
+      showToast(msg, 'error');
       setLoading(false);
     } else {
-      // Success
       setLoading(false);
-      showToast('Welcome to Kirti ❤️', 'success');
+      showToast('Welcome', 'success');
       setActiveTab('discover');
     }
   };
@@ -52,13 +50,6 @@ export const SignupView: React.FC = () => {
       <div className="auth-card">
         <h1 className="auth-title">KIRTI</h1>
         <p className="auth-subtitle">Durga Puja. Together.</p>
-
-        {error && (
-          <div className="auth-error">
-            <AlertCircle size={16} />
-            <span>{error}</span>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="input-group">
