@@ -1,0 +1,128 @@
+import React from 'react';
+import { useStore } from '../../lib/store';
+import { Compass, MapPin, Users, Award, User } from 'lucide-react';
+
+export const MobileNav: React.FC = () => {
+  const { activeTab, setActiveTab, pendingIncomingRequests } = useStore();
+
+  return (
+    <nav className="mobile-bottom-nav">
+      <button
+        className={`mobile-nav-btn ${activeTab === 'discover' ? 'active' : ''}`}
+        onClick={() => setActiveTab('discover')}
+      >
+        <div className="nav-icon-wrap">
+          <Compass size={19} />
+        </div>
+        <span>Discover</span>
+      </button>
+
+      <button
+        className={`mobile-nav-btn ${activeTab === 'map' ? 'active' : ''}`}
+        onClick={() => setActiveTab('map')}
+      >
+        <div className="nav-icon-wrap">
+          <MapPin size={19} />
+        </div>
+        <span>Map</span>
+      </button>
+
+      <button
+        className={`mobile-nav-btn ${activeTab === 'friends' ? 'active' : ''}`}
+        onClick={() => setActiveTab('friends')}
+      >
+        <div className="nav-icon-wrap">
+          <Users size={19} />
+          {pendingIncomingRequests.length > 0 && (
+            <span className="mobile-badge">{pendingIncomingRequests.length}</span>
+          )}
+        </div>
+        <span>Friends</span>
+      </button>
+
+      <button
+        className={`mobile-nav-btn ${activeTab === 'vote' ? 'active' : ''}`}
+        onClick={() => setActiveTab('vote')}
+      >
+        <div className="nav-icon-wrap">
+          <Award size={19} />
+        </div>
+        <span>Vote</span>
+      </button>
+
+      <button
+        className={`mobile-nav-btn ${activeTab === 'profile' ? 'active' : ''}`}
+        onClick={() => setActiveTab('profile')}
+      >
+        <div className="nav-icon-wrap">
+          <User size={19} />
+        </div>
+        <span>Profile</span>
+      </button>
+
+      <style>{`
+        .mobile-bottom-nav {
+          display: none;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 68px;
+          background: var(--bg-header);
+          backdrop-filter: blur(16px);
+          border-top: 1px solid var(--border);
+          z-index: 1000;
+          align-items: center;
+          justify-content: space-around;
+          padding: 0 8px;
+        }
+        @media (max-width: 768px) {
+          .mobile-bottom-nav {
+            display: flex;
+          }
+        }
+        .mobile-nav-btn {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          font-family: var(--font-sans);
+          font-size: 11px;
+          font-weight: 600;
+          padding: 6px 10px;
+          border-radius: var(--radius-md);
+          cursor: pointer;
+          transition: all 0.15s ease;
+          position: relative;
+        }
+        .mobile-nav-btn:hover,
+        .mobile-nav-btn.active {
+          color: var(--text-primary);
+        }
+        .mobile-nav-btn.active .nav-icon-wrap {
+          color: var(--kirti-red);
+        }
+        .nav-icon-wrap {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .mobile-badge {
+          position: absolute;
+          top: -3px;
+          right: -6px;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--kirti-red);
+          border: 1.5px solid var(--bg-header);
+        }
+      `}</style>
+    </nav>
+  );
+};

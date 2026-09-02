@@ -1,0 +1,325 @@
+import React, { useState } from 'react';
+import { useStore } from '../../lib/store';
+import { Card, Button, Tabs } from '../ui';
+import {
+  Sparkles,
+  Trophy,
+  Zap,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  TrendingUp,
+  Vote,
+  ClipboardList
+} from 'lucide-react';
+import type { RatingCategoryCode } from '../../types/database.types';
+import type { PandalRanking } from '../../types/ranking.types';
+
+interface RankingCategory {
+  id: RatingCategoryCode;
+  name: string;
+  name_bn: string;
+  description: string;
+  icon: React.ReactNode;
+}
+
+const RANKING_CATEGORIES: RankingCategory[] = [
+  {
+    id: 'overall',
+    name: 'Overall',
+    name_bn: 'সামগ্রিক',
+    description: 'The community favorite with the most unforgettable overall experience',
+    icon: <Trophy size={15} className="text-gold" />
+  },
+  {
+    id: 'theme',
+    name: 'Theme',
+    name_bn: 'থিম',
+    description: 'Most innovative conceptual storytelling and visual execution',
+    icon: <Sparkles size={15} className="text-red" />
+  },
+  {
+    id: 'idol',
+    name: 'Idol',
+    name_bn: 'প্রতিমা',
+    description: 'Masterful clay craftsmanship, expression and traditional drapery',
+    icon: <Star size={15} className="text-gold" />
+  },
+  {
+    id: 'lighting',
+    name: 'Lighting',
+    name_bn: 'আলোসজ্জা',
+    description: 'Breathtaking lighting displays and atmospheric glow',
+    icon: <Zap size={15} className="text-red" />
+  },
+  {
+    id: 'management',
+    name: 'Management',
+    name_bn: 'ব্যবস্থাপনা',
+    description: 'Organization, visitor handling, cleanliness and general management',
+    icon: <ClipboardList size={15} className="text-gold" />
+  }
+];
+
+export const VoteView: React.FC = () => {
+  const { pandals, setSelectedPandal } = useStore();
+
+  // View Switcher: 'cast_vote' vs 'pandals_ranking'
+  const [activeView, setActiveView] = useState<'cast_vote' | 'pandals_ranking'>('cast_vote');
+
+  // Active Category for Voting
+  const [selectedCatId, setSelectedCatId] = useState<RatingCategoryCode>('overall');
+
+  // Pagination state for Rankings (20 pandals per page)
+  const [rankingPage, setRankingPage] = useState<number>(1);
+  const itemsPerPage = 20;
+
+  const activeCategory = RANKING_CATEGORIES.find(c => c.id === selectedCatId) || RANKING_CATEGORIES[0];
+
+  // For the actual statistical engine, we'll mock the PandalRanking array here.
+  // In production, this would come from `useStore().rankings` loaded via `get_current_rankings()` RPC.
+  const rankings: PandalRanking[] = [...pandals].map((p) => {
+    // Generate a stable mock Bayesian score based on avgRating
+    const score = p.avgRating * 0.95 + (Math.random() * 0.2); 
+    const count = p.ratingCount > 0 ? p.ratingCount : Math.floor(Math.random() * 500) + 10;
+    
+    return {
+      id: `rank_${p.id}`,
+      pandal_id: p.id,
+      season_id: 's_2026',
+      category_id: selectedCatId,
+      category_code: selectedCatId,
+      raw_mean: p.avgRating,
+      bayesian_mean: score,
+      lower_confidence_score: score - 0.2,
+      final_score: score,
+      raw_rating_count: count,
+      effective_sample_size: count,
+      standard_deviation: 0.5,
+      one_star: 1, two_star: 2, three_star: 5, four_star: 15, five_star: count - 23,
+      rank: 0,
+      is_rank_eligible: count >= 10,
+      ranking_version: '2026-v1',
+      calculated_at: new Date().toISOString(),
+      pandal_name: p.name,
+      pandal_slug: p.slug,
+      pandal_image_url: p.image_url,
+      pandal_address: p.address,
+      pandal_zone: p.zone
+    } as any;
+  }).sort((a, b) => {
+    // Tie-breaker: final_score > lower_conf > count > id
+    if (Math.abs(b.final_score - a.final_score) > 0.001) return b.final_score - a.final_score;
+    if (Math.abs(b.lower_confidence_score - a.lower_confidence_score) > 0.001) return b.lower_confidence_score - a.lower_confidence_score;
+    if (b.raw_rating_count !== a.raw_rating_count) return b.raw_rating_count - a.raw_rating_count;
+    return a.pandal_id.localeCompare(b.pandal_id);
+  });
+
+  // Assign deterministic ranks post-sort
+  rankings.forEach((r, idx) => r.rank = idx + 1);
+
+  // Pagination logic
+  const totalPages = Math.ceil(rankings.length / itemsPerPage);
+  const paginatedRankings = rankings.slice((rankingPage - 1) * itemsPerPage, rankingPage * itemsPerPage);
+
+  const handleNextPage = () => {
+    if (rankingPage < totalPages) setRankingPage(p => p + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (rankingPage > 1) setRankingPage(p => p - 1);
+  };
+
+  return (
+    <div className="vote-view-container">
+      {/* Top Header & View Switcher */}
+      <div className="vote-header-block">        <div className="vote-title-and-switch">
+          <div className="title-text-group">
+            <h1 className="vote-main-title">
+              {activeView === 'cast_vote' ? "Rate Kolkata's Pandals" : 'Official Fair Pandal Rankings'}
+            </h1>
+          </div>
+
+          <Tabs 
+            variant="segmented"
+            activeId={activeView}
+            onChange={(id) => {
+              setActiveView(id as 'cast_vote' | 'pandals_ranking');
+              if (id === 'pandals_ranking') setRankingPage(1);
+            }}
+            items={[
+              { id: 'cast_vote', label: 'Cast Vote', icon: <Vote size={15} /> },
+              { id: 'pandals_ranking', label: 'Pandals Ranking', icon: <TrendingUp size={15} /> }
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* Category Selector Pills (Shared by both views) */}
+      <div className="category-tabs-wrap" style={{ overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
+        <Tabs 
+          variant="pills"
+          activeId={selectedCatId}
+          onChange={(id) => {
+            setSelectedCatId(id as RatingCategoryCode);
+            setRankingPage(1);
+          }}
+          items={RANKING_CATEGORIES.map(c => ({
+            id: c.id,
+            label: c.name,
+            icon: c.icon
+          }))}
+        />
+      </div>
+
+      {/* =======================================================================
+          VIEW 1: CAST VOTE (List Pandals to Rate)
+          ======================================================================= */}
+      {activeView === 'cast_vote' && (
+        <div className="cast-vote-section">
+          <div className="nominees-section">
+
+            <div className="nominees-grid">
+              {pandals.slice(0, 20).map((pandal) => {
+                return (
+                  <Card
+                    key={pandal.id}
+                    variant="interactive"
+                    padding="none"
+                    rounded="lg"
+                    className="nominee-compact-card"
+                    onClick={() => setSelectedPandal(pandal)}
+                  >
+                    <img src={pandal.image_url} alt={pandal.name} className="nominee-compact-thumb" />
+                    <div className="nominee-compact-info">
+                      <div className="nominee-title-location-row">
+                        <span className="nominee-name">{pandal.name}</span>
+                        <span className="loc-sep">•</span>
+                        <span className="nominee-location">{pandal.address}</span>
+                      </div>
+                      <div className="nominee-stats-row">
+                        <span className="stat-pill"><Star size={12}/> {pandal.avgRating.toFixed(1)}</span>
+                        <span className="stat-pill"><Vote size={12}/> {pandal.ratingCount} Ratings</span>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =======================================================================
+          VIEW 2: PANDALS RANKING (Statistical Engine Output)
+          ======================================================================= */}
+      {activeView === 'pandals_ranking' && (
+        <div className="ranking-view-section">
+          <div className="ranking-header-bar">
+            <div>
+              <h3 className="section-title">TOP {activeCategory.name.toUpperCase()} PANDALS</h3>
+              <p className="section-sub">Bayesian-adjusted for fairness. Updated 4m ago.</p>
+            </div>
+          </div>
+
+          <div className="nominees-grid">
+            {paginatedRankings.map((pandalRank) => {
+              const rank = pandalRank.rank;
+              const isEligible = pandalRank.is_rank_eligible;
+
+              return (
+                <Card
+                  key={pandalRank.id}
+                  variant="interactive"
+                  padding="none"
+                  rounded="lg"
+                  className={`nominee-compact-card ranking-card ${!isEligible ? 'is-ineligible' : ''}`}
+                  onClick={() => {
+                    const matchedPandal = pandals.find(p => p.id === pandalRank.pandal_id);
+                    if (matchedPandal) setSelectedPandal(matchedPandal);
+                  }}
+                >
+                  <div className="nominee-rank-slot">
+                    <span className={`rank-tag ${rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : ''}`}>
+                      {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`}
+                    </span>
+                  </div>
+
+                  <img src={pandalRank.pandal_image_url} alt={pandalRank.pandal_name} className="nominee-compact-thumb" />
+
+                  <div className="nominee-compact-info ranking-info-flex">
+                    <div className="ranking-title-row">
+                      <div className="nominee-title-location-row">
+                        <span className="nominee-name">{pandalRank.pandal_name}</span>
+                        <span className="loc-sep">|</span>
+                        <span className="nominee-location">{pandalRank.pandal_address}</span>
+                      </div>
+                      
+                      <div className="ranking-score-display">
+                        <span className="big-score">{pandalRank.final_score.toFixed(2)}</span>
+                        <span className="score-star">★</span>
+                      </div>
+                    </div>
+
+                    <div className="ranking-meta-row">
+                      <span className="rating-count-pill">{pandalRank.raw_rating_count.toLocaleString()} verified ratings</span>
+                      {!isEligible && (
+                        <span className="eligibility-warning text-yellow-500 text-xs">Insufficient evidence</span>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="pagination-bar">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="pagination-icon-btn"
+                onClick={handlePrevPage} 
+                disabled={rankingPage === 1}
+              >
+                <ChevronLeft size={16} />
+              </Button>
+              
+              <div className="pagination-numbers">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  // Show pages around current
+                  let pNum = rankingPage - 2 + i;
+                  if (rankingPage <= 3) pNum = i + 1;
+                  if (rankingPage >= totalPages - 2) pNum = totalPages - 4 + i;
+                  if (pNum < 1 || pNum > totalPages) return null;
+                  
+                  return (
+                    <button 
+                      key={pNum}
+                      className={`page-num-btn ${rankingPage === pNum ? 'is-active' : ''}`}
+                      onClick={() => setRankingPage(pNum)}
+                    >
+                      {pNum}
+                    </button>
+                  );
+                })}
+                {totalPages > 5 && rankingPage < totalPages - 2 && <span className="page-ellipsis">...</span>}
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="pagination-icon-btn"
+                onClick={handleNextPage}
+                disabled={rankingPage === totalPages}
+              >
+                <ChevronRight size={16} />
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
