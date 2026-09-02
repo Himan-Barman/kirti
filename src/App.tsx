@@ -129,12 +129,22 @@ export const AppContent: React.FC = () => {
             {activeTab === 'signup' && <SignupView />}
             {activeTab === 'forgot-password' && <ForgotPasswordView />}
             {activeTab === 'reset-password' && <ResetPasswordView />}
+            {/* MOBILE FOOTER MENU TAB */}
+            {activeTab === 'menu' && (
+              <div className="menu-view-wrapper" style={{ minHeight: 'calc(100vh - 80px)' }}>
+                <Footer />
+              </div>
+            )}
           </>
         )}
       </main>
 
-      {/* Professional Footer */}
-      {!isAuthTab && <Footer />}
+      {/* Professional Footer (Hidden on Mobile) */}
+      {!isAuthTab && (
+        <div className="desktop-footer-only">
+          <Footer />
+        </div>
+      )}
 
       {/* Mobile Navigation Bottom Bar */}
       {!isAuthTab && <MobileNav />}

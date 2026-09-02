@@ -220,6 +220,9 @@ html.lenis, html.lenis body {
   .main-content {
     padding: 16px 14px calc(76px + env(safe-area-inset-bottom, 12px)) 14px;
   }
+  .desktop-footer-only {
+    display: none !important;
+  }
 }
 
 /* Global Typography */

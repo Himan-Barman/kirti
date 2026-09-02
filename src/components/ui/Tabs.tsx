@@ -97,6 +97,9 @@ export const Tabs: React.FC<TabsProps> = ({
         .tabs-segmented .tab-btn:hover {
           color: var(--text-primary);
         }
+        .tabs-segmented .tab-btn:active {
+          transform: scale(0.95);
+        }
         .tabs-segmented .tab-btn.is-active {
           background: var(--bg-card);
           color: var(--text-primary);
@@ -133,6 +136,9 @@ export const Tabs: React.FC<TabsProps> = ({
         .tabs-pills .tab-btn:hover {
           border-color: var(--text-primary);
           color: var(--text-primary);
+        }
+        .tabs-pills .tab-btn:active {
+          transform: scale(0.95);
         }
         .tabs-pills .tab-btn.is-active {
           background: var(--text-primary);

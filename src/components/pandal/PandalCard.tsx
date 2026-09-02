@@ -141,6 +141,9 @@ export const PandalCard: React.FC<PandalCardProps> = ({ pandal }) => {
         .pandal-card:hover .pandal-img {
           transform: scale(1.05);
         }
+        .pandal-card:active {
+          transform: scale(0.97);
+        }
         .zone-tag-pos {
           position: absolute;
           top: 14px;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../../lib/store';
 import { useAuth } from '../../lib/auth';
-import { Compass, MapPin, Users, Award, User, UserPlus } from 'lucide-react';
+import { Compass, MapPin, Users, Award, User, Menu } from 'lucide-react';
 
 export const MobileNav: React.FC = () => {
   const { activeTab, setActiveTab, pendingIncomingRequests } = useStore();
@@ -66,13 +66,13 @@ export const MobileNav: React.FC = () => {
         </button>
       ) : (
         <button
-          className={`mobile-nav-btn ${activeTab === 'signup' ? 'active' : ''}`}
-          onClick={() => setActiveTab('signup')}
+          className={`mobile-nav-btn ${activeTab === 'menu' ? 'active' : ''}`}
+          onClick={() => setActiveTab('menu')}
         >
           <div className="nav-icon-wrap">
-            <UserPlus size={19} />
+            <Menu size={19} />
           </div>
-          <span>Sign Up</span>
+          <span>Menu</span>
         </button>
       )}
 

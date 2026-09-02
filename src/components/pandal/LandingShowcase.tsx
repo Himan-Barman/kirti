@@ -76,9 +76,6 @@ export const LandingShowcase: React.FC = () => {
       <section className="hero-section">
         {/* Luxury Hero Pavilion Stage with Divine Red & Gold Radiance */}
         <div className="hero-stage-pavilion">
-          {/* Top Luminous Crimson-Gold Horizon Beam */}
-          <div className="hero-luminous-beam" aria-hidden="true"></div>
-
           {/* Multi-layer atmospheric red & gold ambient illumination */}
           <div className="hero-ambient-glow" aria-hidden="true"></div>
 
@@ -275,28 +272,7 @@ export const LandingShowcase: React.FC = () => {
             padding: 24px 0 16px 0;
           }
         }
-        .hero-luminous-beam {
-          position: absolute;
-          top: 0;
-          left: 5%;
-          right: 5%;
-          height: 2px;
-          background: linear-gradient(90deg, 
-            transparent 0%, 
-            rgba(225, 29, 72, 0) 10%, 
-            rgba(225, 29, 72, 0.95) 30%, 
-            rgba(251, 191, 36, 1) 50%, 
-            rgba(245, 158, 11, 0.9) 70%, 
-            rgba(225, 29, 72, 0) 90%, 
-            transparent 100%
-          );
-          box-shadow: 
-            0 0 25px 3px rgba(251, 191, 36, 0.6),
-            0 0 50px 8px rgba(225, 29, 72, 0.5),
-            0 0 80px 16px rgba(180, 35, 42, 0.35);
-          pointer-events: none;
-          z-index: 1;
-        }
+
         .hero-ambient-glow {
           position: absolute;
           top: -40px;
@@ -344,14 +320,17 @@ export const LandingShowcase: React.FC = () => {
           z-index: 0;
         }
         .hero-bengali-text {
-          font-family: var(--font-bengali);
+          font-family: 'Tiro Bangla', serif;
           font-size: 175px;
-          font-weight: 900;
+          font-weight: 400;
           background: linear-gradient(135deg, rgba(251, 191, 36, 0.18) 0%, rgba(225, 29, 72, 0.12) 65%, transparent 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           filter: drop-shadow(0 0 35px rgba(245, 158, 11, 0.14));
           line-height: 1.2;
+          padding-top: 30px;
+          padding-bottom: 20px;
+          margin-top: -30px;
           display: block;
           letter-spacing: 0.02em;
         }
@@ -409,17 +388,17 @@ export const LandingShowcase: React.FC = () => {
 
         [data-theme="light"] .hero-ambient-glow {
           background: 
-            radial-gradient(ellipse 70% 50% at 70% -5%, rgba(245, 158, 11, 0.16) 0%, transparent 65%),
-            radial-gradient(ellipse 65% 55% at 20% -5%, rgba(220, 38, 38, 0.18) 0%, transparent 65%),
-            radial-gradient(circle 420px at 50% 15%, rgba(251, 191, 36, 0.12) 0%, transparent 65%);
+            radial-gradient(ellipse 70% 50% at 70% -5%, rgba(245, 158, 11, 0.08) 0%, transparent 65%),
+            radial-gradient(ellipse 65% 55% at 20% -5%, rgba(220, 38, 38, 0.10) 0%, transparent 65%),
+            radial-gradient(circle 420px at 50% 15%, rgba(251, 191, 36, 0.06) 0%, transparent 65%);
           filter: blur(35px);
         }
         [data-theme="dark"] .hero-ambient-glow {
           background: 
-            radial-gradient(ellipse 75% 55% at 70% -10%, rgba(245, 158, 11, 0.45) 0%, transparent 65%),
-            radial-gradient(ellipse 70% 60% at 18% -10%, rgba(225, 29, 72, 0.52) 0%, transparent 65%),
-            radial-gradient(circle 500px at 50% 15%, rgba(251, 191, 36, 0.32) 0%, transparent 70%),
-            radial-gradient(ellipse 90% 50% at 50% 90%, rgba(159, 18, 57, 0.25) 0%, transparent 80%);
+            radial-gradient(ellipse 75% 55% at 70% -10%, rgba(245, 158, 11, 0.20) 0%, transparent 65%),
+            radial-gradient(ellipse 70% 60% at 18% -10%, rgba(225, 29, 72, 0.25) 0%, transparent 65%),
+            radial-gradient(circle 500px at 50% 15%, rgba(251, 191, 36, 0.15) 0%, transparent 70%),
+            radial-gradient(ellipse 90% 50% at 50% 90%, rgba(159, 18, 57, 0.12) 0%, transparent 80%);
           filter: blur(40px);
         }
         @media (max-width: 768px) {
@@ -583,12 +562,17 @@ export const LandingShowcase: React.FC = () => {
         @media (max-width: 768px) {
           .showcase-section-header {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 14px;
+            align-items: center;
+            gap: 16px;
+          }
+          .showcase-title-block {
+            align-items: center;
+            text-align: center;
           }
           .curated-tabs-holder {
             width: 100%;
             scrollbar-width: none;
+            justify-content: center;
           }
           .curated-tabs-holder::-webkit-scrollbar {
             display: none;
@@ -605,7 +589,15 @@ export const LandingShowcase: React.FC = () => {
         }
         @media (max-width: 900px) {
           .showcase-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+          }
+        }
+        @media (max-width: 650px) {
+          .showcase-grid {
+            grid-template-columns: minmax(0, 1fr);
+            max-width: 360px;
+            margin: 0 auto;
             gap: 18px;
           }
         }
