@@ -13,6 +13,10 @@ import { FriendProfileModal } from './components/friends/FriendProfileModal';
 import { ProfileView } from './components/profile/ProfileView';
 import { LandingShowcase } from './components/pandal/LandingShowcase';
 import { VoteView } from './components/vote/VoteView';
+import { LoginView } from './components/auth/LoginView';
+import { SignupView } from './components/auth/SignupView';
+import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
+import { AuthProvider } from './lib/auth';
 import { Check } from 'lucide-react';
 
 export const AppContent: React.FC = () => {
@@ -89,6 +93,11 @@ export const AppContent: React.FC = () => {
                 <ProfileView />
               </div>
             )}
+
+            {/* AUTH TABS */}
+            {activeTab === 'login' && <LoginView />}
+            {activeTab === 'signup' && <SignupView />}
+            {activeTab === 'forgot-password' && <ForgotPasswordView />}
           </>
         )}
       </main>
@@ -114,5 +123,9 @@ export const AppContent: React.FC = () => {
 };
 
 export default function App() {
-  return <AppContent />;
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }

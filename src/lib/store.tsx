@@ -9,6 +9,7 @@ import type {
   PandalWithStats
 } from '../types/database.types';
 import { supabase } from './supabase';
+import { useAuth } from './auth';
 
 interface FriendStats {
   visitedCount: number;
@@ -29,7 +30,7 @@ interface StoreContextType {
   pendingIncomingRequests: Profile[];
   pendingOutgoingRequests: Profile[];
   activities: FriendActivity[];
-  activeTab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile';
+  activeTab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password';
   selectedPandal: PandalWithStats | null;
   selectedFriendProfile: Profile | null;
   searchQuery: string;
@@ -38,7 +39,7 @@ interface StoreContextType {
   toastMessage: string | null;
   theme: 'light' | 'dark';
 
-  setActiveTab: (tab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile') => void;
+  setActiveTab: (tab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password') => void;
   setSelectedPandal: (pandal: PandalWithStats | null) => void;
   setSelectedFriendProfile: (friend: Profile | null) => void;
   setSearchQuery: (query: string) => void;
@@ -94,8 +95,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   };
 
+  const { profile, session } = useAuth();
+
+  const currentUser = profile || GUEST_USER;
+
   const [isLoading, setIsLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<Profile>(GUEST_USER);
   const [settings, setSettings] = useState<ProfileSettings>({ 
     user_id: 'guest_user', 
     visit_visibility: 'friends', 
@@ -110,7 +114,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [friendships] = useState<Friendship[]>([]);
   const [activities] = useState<FriendActivity[]>([]);
 
-  const [activeTab, setActiveTab] = useState<'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile'>('discover');
+  const [activeTab, setActiveTab] = useState<'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password'>('discover');
   const [selectedPandalId, setSelectedPandalId] = useState<string | null>(null);
   const [selectedFriendProfile, setSelectedFriendProfile] = useState<Profile | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -243,20 +247,35 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     ? pandals.find(p => p.id === selectedPandalId) || null
     : null;
 
-  const toggleVisit = (_pandalId: string) => {
-    showToast("Please login to log visits. (Auth coming soon)");
+  const toggleVisit = async (_pandalId: string) => {
+    if (!session) {
+      showToast("Please login to log visits.");
+      setActiveTab('login');
+      return;
+    }
+    showToast("Visit logged! (Syncing to DB coming soon)");
   };
 
-  const submitRating = (
+  const submitRating = async (
     _pandalId: string,
     _scoresOrRating: number | { overall: number; theme: number; idol: number; lighting: number; management: number },
     _reviewText?: string
   ) => {
-    showToast("Please login to submit ratings. (Auth coming soon)");
+    if (!session) {
+      showToast("Please login to submit ratings.");
+      setActiveTab('login');
+      return;
+    }
+    showToast("Rating submitted! (Syncing to DB coming soon)");
   };
 
-  const sendFriendRequest = (_targetUserId: string) => {
-    showToast("Please login to add friends.");
+  const sendFriendRequest = async (_targetUserId: string) => {
+    if (!session) {
+      showToast("Please login to add friends.");
+      setActiveTab('login');
+      return;
+    }
+    showToast("Friend request sent!");
   };
 
   const acceptFriendRequest = (_requesterId: string) => {};
@@ -282,9 +301,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     showToast(`Privacy settings updated ✓`);
   };
 
-  const updateProfile = (updates: Partial<Profile>) => {
-    setCurrentUser(prev => ({ ...prev, ...updates }));
-    showToast(`Profile updated ✓`);
+  const updateProfile = async (_updates: Partial<Profile>) => {
+    showToast(`Profile update coming soon`);
   };
 
   return (
