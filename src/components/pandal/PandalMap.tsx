@@ -11,18 +11,33 @@ import {
   Vote,
   TrendingUp
 } from 'lucide-react';
+import {
+  DEFAULT_KOLKATA_CENTER,
+  calculateDistanceKm,
+  formatDistance,
+  estimateWalkingTime
+} from '../../lib/geo';
 
 export const PandalMap: React.FC = () => {
   const {
     pandals,
     setSelectedPandal,
     selectedPandal,
+    userLocation,
+    mapHighlightPandalId,
+    setMapHighlightPandalId,
+    showRouteOnMap,
+    setShowRouteOnMap,
+    mapRadiusKm,
+    setMapRadiusKm,
     theme
   } = useStore();
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<{ [key: string]: L.Marker }>({});
+  const userMarkerRef = useRef<L.Marker | null>(null);
+  const routePolylineRef = useRef<L.Polyline | null>(null);
 
   const [mapSearch, setMapSearch] = useState('');
   const mapSearchInputRef = useRef<HTMLInputElement>(null);
@@ -35,16 +50,36 @@ export const PandalMap: React.FC = () => {
   const [selectedVisitedFilter, setSelectedVisitedFilter] = useState<'all' | 'unvisited' | 'visited'>('all');
   const [selectedSort, setSelectedSort] = useState<'rating' | 'ratingCount' | 'name'>('rating');
 
+  const activeCoord = userLocation || DEFAULT_KOLKATA_CENTER;
+
   const activeFiltersCount =
     (selectedZone !== 'all' ? 1 : 0) +
     (selectedDistrict !== 'all' ? 1 : 0) +
     (selectedHeritage !== 'all' ? 1 : 0) +
     (selectedVisitedFilter !== 'all' ? 1 : 0) +
-    (selectedSort !== 'rating' ? 1 : 0);
+    (selectedSort !== 'rating' ? 1 : 0) +
+    (mapRadiusKm ? 1 : 0);
+
+  // Target highlighted pandal for route
+  const highlightedRoutePandal = useMemo(() => {
+    if (!mapHighlightPandalId) return null;
+    return pandals.find((p) => p.id === mapHighlightPandalId) || null;
+  }, [pandals, mapHighlightPandalId]);
 
   // Filter & Search Logic
   const filteredPandals = useMemo(() => {
     return pandals.filter((p) => {
+      // 0. Distance Radius Filter (if coming from Nearby page)
+      if (mapRadiusKm) {
+        const dist = calculateDistanceKm(
+          activeCoord.latitude,
+          activeCoord.longitude,
+          p.latitude,
+          p.longitude
+        );
+        if (dist > mapRadiusKm && p.id !== mapHighlightPandalId) return false;
+      }
+
       // 1. Search Query
       const q = mapSearch.toLowerCase().trim();
       const matchesSearch =
@@ -84,7 +119,18 @@ export const PandalMap: React.FC = () => {
       if (selectedSort === 'name') return a.name.localeCompare(b.name);
       return 0;
     });
-  }, [pandals, mapSearch, selectedZone, selectedDistrict, selectedHeritage, selectedVisitedFilter, selectedSort]);
+  }, [
+    pandals,
+    mapSearch,
+    selectedZone,
+    selectedDistrict,
+    selectedHeritage,
+    selectedVisitedFilter,
+    selectedSort,
+    mapRadiusKm,
+    mapHighlightPandalId,
+    activeCoord
+  ]);
 
   // Initialize Map and Render Custom Markers
   useEffect(() => {
@@ -108,28 +154,62 @@ export const PandalMap: React.FC = () => {
 
     const map = mapInstanceRef.current;
 
-    // Clear existing markers
+    // Clear existing pandal markers
     Object.values(markersRef.current).forEach(marker => marker.remove());
     markersRef.current = {};
+
+    // Clear previous user marker & route line
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
+    if (routePolylineRef.current) {
+      routePolylineRef.current.remove();
+      routePolylineRef.current = null;
+    }
+
+    // Add Live User Location Beacon Marker
+    const userBeaconIcon = L.divIcon({
+      className: 'user-beacon-wrapper',
+      html: `
+        <div class="user-beacon-pin" title="Your Location">
+          <div class="user-beacon-dot"></div>
+          <div class="user-beacon-wave"></div>
+        </div>
+      `,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+
+    const userMarker = L.marker([activeCoord.latitude, activeCoord.longitude], {
+      icon: userBeaconIcon,
+      zIndexOffset: 1000
+    }).addTo(map);
+    userMarkerRef.current = userMarker;
 
     // Add markers for filtered pandals
     filteredPandals.forEach(pandal => {
       const isSelected = selectedPandal?.id === pandal.id;
       const isVisited = pandal.userVisited;
+      const isHighlightedTarget = mapHighlightPandalId === pandal.id;
 
       const customIcon = L.divIcon({
         className: 'custom-leaflet-marker',
         html: `
-          <div class="map-marker-pin ${isSelected ? 'marker-active' : ''} ${isVisited ? 'marker-visited' : ''}" title="${pandal.name}">
-            <span class="marker-star">★</span>
+          <div class="map-marker-pin ${isSelected ? 'marker-active' : ''} ${isVisited ? 'marker-visited' : ''} ${isHighlightedTarget ? 'marker-highlight-route' : ''}" title="${pandal.name}">
+            <span class="marker-star">${isHighlightedTarget ? '🎯' : '★'}</span>
             <span class="marker-rating">${pandal.avgRating.toFixed(1)}</span>
+            ${isHighlightedTarget ? '<span class="target-pulse-ring"></span>' : ''}
           </div>
         `,
-        iconSize: [46, 28],
-        iconAnchor: [23, 14]
+        iconSize: isHighlightedTarget ? [56, 32] : [46, 28],
+        iconAnchor: isHighlightedTarget ? [28, 16] : [23, 14]
       });
 
-      const marker = L.marker([pandal.latitude, pandal.longitude], { icon: customIcon })
+      const marker = L.marker([pandal.latitude, pandal.longitude], {
+        icon: customIcon,
+        zIndexOffset: isHighlightedTarget ? 2000 : 0
+      })
         .addTo(map)
         .on('click', () => {
           setSelectedPandal(pandal);
@@ -138,11 +218,52 @@ export const PandalMap: React.FC = () => {
       markersRef.current[pandal.id] = marker;
     });
 
-    if (filteredPandals.length > 0) {
+    // Draw route line if user came from a specific pandal with showRouteOnMap
+    if (showRouteOnMap && highlightedRoutePandal) {
+      const routeLine = L.polyline(
+        [
+          [activeCoord.latitude, activeCoord.longitude],
+          [highlightedRoutePandal.latitude, highlightedRoutePandal.longitude]
+        ],
+        {
+          color: '#b4232a',
+          weight: 4,
+          opacity: 0.95,
+          dashArray: '8, 8',
+          lineCap: 'round',
+          className: 'leaflet-route-animated-line'
+        }
+      ).addTo(map);
+      routePolylineRef.current = routeLine;
+
+      // Fit bounds to show route nicely with padding
+      const routeBounds = L.latLngBounds([
+        [activeCoord.latitude, activeCoord.longitude],
+        [highlightedRoutePandal.latitude, highlightedRoutePandal.longitude]
+      ]);
+      map.fitBounds(routeBounds, { padding: [60, 60], maxZoom: 15 });
+    } else if (filteredPandals.length > 0) {
       const bounds = L.latLngBounds(filteredPandals.map(p => [p.latitude, p.longitude]));
       map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
     }
-  }, [filteredPandals, selectedPandal?.id, theme]);
+  }, [
+    filteredPandals,
+    selectedPandal?.id,
+    mapHighlightPandalId,
+    showRouteOnMap,
+    highlightedRoutePandal,
+    activeCoord,
+    theme
+  ]);
+
+  const targetDistanceKm = highlightedRoutePandal
+    ? calculateDistanceKm(
+        activeCoord.latitude,
+        activeCoord.longitude,
+        highlightedRoutePandal.latitude,
+        highlightedRoutePandal.longitude
+      )
+    : 0;
 
   return (
     <div className="pandal-map-page">
@@ -197,8 +318,42 @@ export const PandalMap: React.FC = () => {
         {/* Dynamic Match Count Indicator Pill */}
         <div className="map-floating-counter-badge">
           <span className="counter-dot"></span>
-          <span>{filteredPandals.length} Pandals on Map</span>
+          <span>
+            {filteredPandals.length} Pandals on Map
+            {mapRadiusKm ? ` (Within ${mapRadiusKm} km)` : ''}
+          </span>
         </div>
+
+        {/* Floating Route Information Banner (When routed to a specific pandal) */}
+        {showRouteOnMap && highlightedRoutePandal && (
+          <div className="map-route-floating-banner beam-interactive">
+            <div className="route-banner-left">
+              <div className="route-icon-box">
+                <Navigation size={16} className="text-red" />
+              </div>
+              <div className="route-banner-details">
+                <span className="route-banner-title">{highlightedRoutePandal.name}</span>
+                <span className="route-banner-subtitle">
+                  {formatDistance(targetDistanceKm)} away
+                  {estimateWalkingTime(targetDistanceKm) ? ` • ${estimateWalkingTime(targetDistanceKm)}` : ''}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="route-banner-close-btn"
+              onClick={() => {
+                setShowRouteOnMap(false);
+                setMapHighlightPandalId(null);
+                setMapRadiusKm(null);
+              }}
+              title="Dismiss Route View"
+              aria-label="Dismiss Route View"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* =======================================================================
@@ -587,9 +742,162 @@ export const PandalMap: React.FC = () => {
         .map-marker-pin.marker-visited {
           border-color: var(--text-primary);
         }
+        .map-marker-pin.marker-highlight-route {
+          background: #b4232a;
+          color: #ffffff;
+          border-color: var(--kirti-gold);
+          transform: scale(1.35);
+          box-shadow: 0 0 20px rgba(180, 35, 42, 0.7);
+          animation: targetBounce 1.8s infinite ease-in-out;
+          font-weight: 800;
+          z-index: 2000 !important;
+        }
+        @keyframes targetBounce {
+          0%, 100% { transform: scale(1.35) translateY(0); }
+          50% { transform: scale(1.42) translateY(-4px); }
+        }
+        .target-pulse-ring {
+          position: absolute;
+          inset: -6px;
+          border-radius: var(--radius-full);
+          border: 2px solid var(--kirti-gold);
+          animation: ringPulse 1.6s infinite cubic-bezier(0.25, 1, 0.5, 1);
+          pointer-events: none;
+        }
+        @keyframes ringPulse {
+          0% { transform: scale(0.9); opacity: 1; }
+          100% { transform: scale(1.7); opacity: 0; }
+        }
+
         .marker-star {
           color: var(--kirti-gold);
           font-size: 10px;
+        }
+
+        /* User GPS Beacon Marker */
+        .user-beacon-pin {
+          position: relative;
+          width: 28px;
+          height: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .user-beacon-dot {
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          background: #2563eb;
+          border: 2.5px solid #ffffff;
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.6);
+          z-index: 2;
+        }
+        .user-beacon-wave {
+          position: absolute;
+          inset: -4px;
+          border-radius: 50%;
+          border: 2px solid #3b82f6;
+          opacity: 0;
+          animation: userBeaconWave 2s infinite ease-out;
+        }
+        @keyframes userBeaconWave {
+          0% { transform: scale(0.6); opacity: 0.9; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+
+        /* Animated Route Line */
+        .leaflet-route-animated-line {
+          animation: dashMove 1.2s linear infinite;
+        }
+        @keyframes dashMove {
+          to {
+            stroke-dashoffset: -16;
+          }
+        }
+
+        /* Floating Route Info Banner */
+        .map-route-floating-banner {
+          position: absolute;
+          top: 14px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 850;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          padding: 8px 14px 8px 12px;
+          background: var(--bg-header);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-full);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+          width: calc(100% - 32px);
+          max-width: 440px;
+          animation: bannerSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes bannerSlideDown {
+          from { opacity: 0; transform: translate(-50%, -12px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        .route-banner-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+          flex: 1;
+        }
+        .route-icon-box {
+          width: 32px;
+          height: 32px;
+          border-radius: var(--radius-full);
+          background: rgba(180, 35, 42, 0.12);
+          border: 1px solid rgba(180, 35, 42, 0.25);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .route-banner-details {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          min-width: 0;
+        }
+        .route-banner-title {
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--text-primary);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .route-banner-subtitle {
+          font-size: 11.5px;
+          font-weight: 600;
+          color: var(--kirti-red);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .route-banner-close-btn {
+          width: 26px;
+          height: 26px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card-subtle);
+          border: 1px solid var(--border);
+          color: var(--text-muted);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: all 0.15s ease;
+        }
+        .route-banner-close-btn:hover {
+          color: var(--text-primary);
+          border-color: var(--border-focus);
         }
 
         /* Slide-Over Filter Drawer */

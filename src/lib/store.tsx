@@ -48,6 +48,10 @@ interface StoreContextType {
   locationStatus: 'idle' | 'requesting' | 'granted' | 'denied' | 'unsupported';
   isLocationRefreshing: boolean;
 
+  mapHighlightPandalId: string | null;
+  showRouteOnMap: boolean;
+  mapRadiusKm: number | null;
+
   setActiveTab: (tab: 'discover' | 'map' | 'nearby' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password') => void;
   setVoteActiveView: (view: 'cast_vote' | 'pandals_ranking') => void;
   setSelectedPandal: (pandal: PandalWithStats | null) => void;
@@ -59,6 +63,9 @@ interface StoreContextType {
   removeToast: (id: string) => void;
   toggleTheme: () => void;
   refreshUserLocation: () => void;
+  setMapHighlightPandalId: (id: string | null) => void;
+  setShowRouteOnMap: (show: boolean) => void;
+  setMapRadiusKm: (radius: number | null) => void;
 
   toggleVisit: (pandalId: string) => void;
   submitRating: (
@@ -150,6 +157,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [userLocation, setUserLocation] = useState<GeoCoordinates | null>(null);
   const [locationStatus, setLocationStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied' | 'unsupported'>('idle');
   const [isLocationRefreshing, setIsLocationRefreshing] = useState(false);
+
+  // Map Route & Highlighting State
+  const [mapHighlightPandalId, setMapHighlightPandalId] = useState<string | null>(null);
+  const [showRouteOnMap, setShowRouteOnMap] = useState(false);
+  const [mapRadiusKm, setMapRadiusKm] = useState<number | null>(null);
 
   const refreshUserLocation = () => {
     if (!navigator.geolocation) {
@@ -417,6 +429,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         locationStatus,
         isLocationRefreshing,
 
+        mapHighlightPandalId,
+        showRouteOnMap,
+        mapRadiusKm,
+
         setActiveTab,
         setVoteActiveView,
         setSelectedPandal: (pandal) => setSelectedPandalId(pandal?.id || null),
@@ -428,6 +444,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         removeToast,
         toggleTheme,
         refreshUserLocation,
+        setMapHighlightPandalId,
+        setShowRouteOnMap,
+        setMapRadiusKm,
 
         toggleVisit,
         submitRating,
