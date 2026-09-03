@@ -1,10 +1,10 @@
 import React from 'react';
 import { useStore } from '../../lib/store';
 import { useAuth } from '../../lib/auth';
-import { Compass, MapPin, Users, Award, User, Menu } from 'lucide-react';
+import { Compass, Navigation, MapPin, Award, User } from 'lucide-react';
 
 export const MobileNav: React.FC = () => {
-  const { activeTab, setActiveTab, pendingIncomingRequests } = useStore();
+  const { activeTab, setActiveTab } = useStore();
   const { user } = useAuth();
 
   return (
@@ -20,6 +20,16 @@ export const MobileNav: React.FC = () => {
       </button>
 
       <button
+        className={`mobile-nav-btn ${activeTab === 'nearby' ? 'active' : ''}`}
+        onClick={() => setActiveTab('nearby')}
+      >
+        <div className="nav-icon-wrap">
+          <Navigation size={19} />
+        </div>
+        <span>Nearby</span>
+      </button>
+
+      <button
         className={`mobile-nav-btn ${activeTab === 'map' ? 'active' : ''}`}
         onClick={() => setActiveTab('map')}
       >
@@ -28,21 +38,6 @@ export const MobileNav: React.FC = () => {
         </div>
         <span>Map</span>
       </button>
-
-      {user && (
-        <button
-          className={`mobile-nav-btn ${activeTab === 'friends' ? 'active' : ''}`}
-          onClick={() => setActiveTab('friends')}
-        >
-          <div className="nav-icon-wrap">
-            <Users size={19} />
-            {pendingIncomingRequests.length > 0 && (
-              <span className="mobile-badge">{pendingIncomingRequests.length}</span>
-            )}
-          </div>
-          <span>Friends</span>
-        </button>
-      )}
 
       <button
         className={`mobile-nav-btn ${activeTab === 'vote' ? 'active' : ''}`}
@@ -64,17 +59,7 @@ export const MobileNav: React.FC = () => {
           </div>
           <span>Profile</span>
         </button>
-      ) : (
-        <button
-          className={`mobile-nav-btn ${activeTab === 'menu' ? 'active' : ''}`}
-          onClick={() => setActiveTab('menu')}
-        >
-          <div className="nav-icon-wrap">
-            <Menu size={19} />
-          </div>
-          <span>Menu</span>
-        </button>
-      )}
+      ) : null}
 
       <style>{`
         .mobile-bottom-nav {

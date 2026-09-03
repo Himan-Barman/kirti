@@ -1,13 +1,28 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../lib/store';
 import { useAuth } from '../../lib/auth';
 import { SearchPopup, Avatar } from '../ui';
-import { Compass, Users, Award, MapPin, Sun, Moon, Search } from 'lucide-react';
+import {
+  Compass,
+  Navigation,
+  Users,
+  Award,
+  MapPin,
+  Sun,
+  Moon,
+  Search,
+  Vote,
+  TrendingUp,
+  ChevronDown,
+  Check
+} from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const {
     activeTab,
     setActiveTab,
+    voteActiveView,
+    setVoteActiveView,
     currentUser,
     pandals,
     pendingIncomingRequests,
@@ -16,7 +31,22 @@ export const Navbar: React.FC = () => {
   } = useStore();
   const { user } = useAuth();
 
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = React.useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isVoteDropdownOpen, setIsVoteDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsVoteDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Compute total visited count
   const visitedCount = pandals.filter(p => p.userVisited).length;
 
   return (
@@ -49,9 +79,69 @@ export const Navbar: React.FC = () => {
 
             {/* Right Nav Actions */}
             <div className="header-right-actions">
-              {/* Mobile Search Toggle Button */}
+              {/* Mobile Vote View Dropdown (Shown on mobile when on Vote tab) */}
+              {activeTab === 'vote' && (
+                <div className="mobile-vote-view-dropdown-container" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    className="mobile-vote-view-trigger-btn beam-interactive"
+                    onClick={() => setIsVoteDropdownOpen(!isVoteDropdownOpen)}
+                    aria-label="Switch Vote View"
+                  >
+                    {voteActiveView === 'cast_vote' ? (
+                      <>
+                        <Vote size={14} className="text-red" />
+                        <span>Vote</span>
+                      </>
+                    ) : (
+                      <>
+                        <TrendingUp size={14} className="text-gold" />
+                        <span>Rankings</span>
+                      </>
+                    )}
+                    <ChevronDown size={14} className={`dropdown-arrow ${isVoteDropdownOpen ? 'open' : ''}`} />
+                  </button>
+
+                  {/* Dropdown Popup */}
+                  {isVoteDropdownOpen && (
+                    <div className="vote-view-dropdown-popup">
+                      <button
+                        type="button"
+                        className={`vote-dropdown-item ${voteActiveView === 'cast_vote' ? 'active' : ''}`}
+                        onClick={() => {
+                          setVoteActiveView('cast_vote');
+                          setIsVoteDropdownOpen(false);
+                        }}
+                      >
+                        <div className="item-left-content">
+                          <Vote size={15} className="text-red" />
+                          <span>Vote</span>
+                        </div>
+                        {voteActiveView === 'cast_vote' && <Check size={14} className="dropdown-check" />}
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`vote-dropdown-item ${voteActiveView === 'pandals_ranking' ? 'active' : ''}`}
+                        onClick={() => {
+                          setVoteActiveView('pandals_ranking');
+                          setIsVoteDropdownOpen(false);
+                        }}
+                      >
+                        <div className="item-left-content">
+                          <TrendingUp size={15} className="text-gold" />
+                          <span>Rankings</span>
+                        </div>
+                        {voteActiveView === 'pandals_ranking' && <Check size={14} className="dropdown-check" />}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Mobile Search Toggle Button (Hidden on mobile when on Vote tab) */}
               <button
-                className="mobile-search-toggle"
+                className={`mobile-search-toggle ${activeTab === 'vote' ? 'mobile-hide-on-vote' : ''}`}
                 onClick={() => setIsMobileSearchOpen(true)}
                 title="Search"
                 aria-label="Open search bar"
@@ -67,6 +157,14 @@ export const Navbar: React.FC = () => {
                 >
                   <Compass size={16} />
                   <span>Discover</span>
+                </button>
+
+                <button
+                  className={`nav-link ${activeTab === 'nearby' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('nearby')}
+                >
+                  <Navigation size={16} />
+                  <span>Nearby</span>
                 </button>
 
                 <button
@@ -101,7 +199,7 @@ export const Navbar: React.FC = () => {
 
               {/* Theme Toggle Button */}
               <button
-                className="theme-toggle-btn"
+                className={`theme-toggle-btn ${activeTab === 'vote' ? 'mobile-hide-on-vote' : ''}`}
                 onClick={toggleTheme}
                 title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 aria-label="Toggle theme"
@@ -116,7 +214,7 @@ export const Navbar: React.FC = () => {
               {/* User Profile / Login */}
               {user ? (
                 <button
-                  className={`profile-pill ${activeTab === 'profile' ? 'active' : ''}`}
+                  className={`profile-pill ${activeTab === 'profile' ? 'active' : ''} ${activeTab === 'vote' ? 'mobile-hide-on-vote' : ''}`}
                   onClick={() => setActiveTab('profile')}
                   title="My Puja Passport"
                 >
@@ -128,7 +226,7 @@ export const Navbar: React.FC = () => {
                 </button>
               ) : (
                 <button
-                  className="auth-submit-btn"
+                  className={`auth-submit-btn ${activeTab === 'vote' ? 'mobile-hide-on-vote' : ''}`}
                   style={{ padding: '6px 14px', margin: 0, height: '36px', width: 'auto', fontSize: '14px', borderRadius: '20px' }}
                   onClick={() => setActiveTab('signup')}
                 >
@@ -409,6 +507,105 @@ export const Navbar: React.FC = () => {
           height: 6px;
           border-radius: 50%;
           background: var(--kirti-red);
+        }
+
+        /* Mobile Vote View Dropdown */
+        .mobile-vote-view-dropdown-container {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+        .mobile-vote-view-trigger-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          color: var(--text-primary);
+          font-size: 12.5px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .mobile-vote-view-trigger-btn:hover {
+          background: var(--bg-card-subtle);
+          border-color: var(--border-focus);
+        }
+        .mobile-vote-view-trigger-btn:active {
+          transform: scale(0.96);
+        }
+        .dropdown-arrow {
+          color: var(--text-muted);
+          transition: transform 0.2s ease;
+        }
+        .dropdown-arrow.open {
+          transform: rotate(180deg);
+        }
+
+        .vote-view-dropdown-popup {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          min-width: 175px;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-xl);
+          padding: 6px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          z-index: 1050;
+          animation: votePopupFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes votePopupFadeIn {
+          from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .vote-dropdown-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 9px 12px;
+          border-radius: var(--radius-lg);
+          background: transparent;
+          border: none;
+          color: var(--text-primary);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          width: 100%;
+          text-align: left;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .vote-dropdown-item:hover {
+          background: var(--bg-card-subtle);
+        }
+        .vote-dropdown-item.active {
+          background: rgba(180, 35, 42, 0.1);
+          color: var(--kirti-red);
+          font-weight: 700;
+        }
+        .item-left-content {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .dropdown-check {
+          color: var(--kirti-red);
+        }
+
+        @media (max-width: 768px) {
+          .mobile-hide-on-vote {
+            display: none !important;
+          }
         }
       `}</style>
     </header>

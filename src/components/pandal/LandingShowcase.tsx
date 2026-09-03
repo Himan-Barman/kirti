@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../lib/store';
 import { PandalCard } from './PandalCard';
 import { FriendJourneyCompare } from '../friends/FriendJourneyCompare';
@@ -11,8 +11,16 @@ import {
   ArrowRight,
   Flame,
   Award,
-  CheckCircle2
+  CheckCircle2,
+  Navigation
 } from 'lucide-react';
+import {
+  DEFAULT_KOLKATA_CENTER,
+  calculateDistanceKm,
+  formatDistance,
+  estimateWalkingTime
+} from '../../lib/geo';
+import type { GeoCoordinates } from '../../lib/geo';
 
 const CURATED_TABS = [
   { id: 'trending', label: 'Trending Now', icon: <Flame size={14} /> },
@@ -31,6 +39,45 @@ export const LandingShowcase: React.FC = () => {
   } = useStore();
 
   const [activeCuratedTab, setActiveCuratedTab] = useState<string>('trending');
+
+  // User Geolocation for nearby landing section
+  const [userLoc, setUserLoc] = useState<GeoCoordinates | null>(null);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLoc({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          });
+        },
+        () => {
+          setUserLoc(DEFAULT_KOLKATA_CENTER);
+        },
+        { enableHighAccuracy: false, timeout: 5000 }
+      );
+    } else {
+      setUserLoc(DEFAULT_KOLKATA_CENTER);
+    }
+  }, []);
+
+  const activeCoord = userLoc || DEFAULT_KOLKATA_CENTER;
+
+  const nearbyLandingList = useMemo(() => {
+    return [...pandals]
+      .map((p) => ({
+        ...p,
+        distanceKm: calculateDistanceKm(
+          activeCoord.latitude,
+          activeCoord.longitude,
+          p.latitude,
+          p.longitude
+        )
+      }))
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(0, 3);
+  }, [pandals, activeCoord]);
 
   const filteredPandals = pandals.filter(p => {
     const matchesZone = selectedZone === 'all' || p.zone === selectedZone;
@@ -226,7 +273,98 @@ export const LandingShowcase: React.FC = () => {
         </div>
       </section>
 
+      {/* =========================================================================
+          4. LOCAL AREA RADAR SECTION (TOP 3 NEAREST PANDALS)
+          ========================================================================= */}
+      <section className="showcase-section nearby-landing-section">
+        {/* Centered Red Eyebrow Pill */}
+        <div className="section-eyebrow-center-wrap">
+          <div className="section-eyebrow">
+            <Navigation size={13} className="eyebrow-icon-red" />
+            <span>LOCAL AREA RADAR</span>
+          </div>
+        </div>
+
+        {/* Left Heading & Right View Action in Same Row */}
+        <div className="showcase-section-header">
+          <h2 className="section-main-title">Near You Now</h2>
+
+          <Button
+            variant="subtle"
+            size="sm"
+            rounded="full"
+            icon={<Navigation size={14} />}
+            iconRight={<ArrowRight size={13} />}
+            onClick={() => setActiveTab('nearby')}
+          >
+            Full Radar View
+          </Button>
+        </div>
+
+        {/* 3 Nearest Pandals Grid */}
+        <div className="showcase-grid">
+          {nearbyLandingList.map(pandal => {
+            const distFormatted = formatDistance(pandal.distanceKm);
+            const walkEst = estimateWalkingTime(pandal.distanceKm);
+
+            return (
+              <div key={pandal.id} className="nearby-card-container">
+                <div className="distance-badge-overlay">
+                  <div className="distance-pill">
+                    <MapPin size={12} className="dist-icon" />
+                    <span>{distFormatted}</span>
+                  </div>
+                  {walkEst && <span className="walk-pill">{walkEst}</span>}
+                </div>
+                <PandalCard pandal={pandal} />
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       <style>{`
+        .nearby-card-container {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        }
+        .distance-badge-overlay {
+          position: absolute;
+          top: 12px;
+          left: 12px;
+          z-index: 15;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .distance-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 10px;
+          border-radius: var(--radius-full);
+          background: rgba(0, 0, 0, 0.78);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          color: #fff;
+          font-size: 11.5px;
+          font-weight: 700;
+        }
+        .dist-icon {
+          color: var(--kirti-gold);
+        }
+        .walk-pill {
+          padding: 4px 8px;
+          border-radius: var(--radius-full);
+          background: rgba(180, 35, 42, 0.88);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          color: #fff;
+          font-size: 11px;
+          font-weight: 600;
+        }
         .landing-container {
           display: flex;
           flex-direction: column;

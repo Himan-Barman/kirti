@@ -31,7 +31,8 @@ interface StoreContextType {
   pendingIncomingRequests: Profile[];
   pendingOutgoingRequests: Profile[];
   activities: FriendActivity[];
-  activeTab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password' | 'menu';
+  activeTab: 'discover' | 'map' | 'nearby' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password';
+  voteActiveView: 'cast_vote' | 'pandals_ranking';
   selectedPandal: PandalWithStats | null;
   selectedFriendProfile: Profile | null;
   searchQuery: string;
@@ -41,7 +42,8 @@ interface StoreContextType {
   toastMessage: string | null; // Keeping for backward compatibility temporarily if needed
   theme: 'light' | 'dark';
 
-  setActiveTab: (tab: 'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password' | 'menu') => void;
+  setActiveTab: (tab: 'discover' | 'map' | 'nearby' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password') => void;
+  setVoteActiveView: (view: 'cast_vote' | 'pandals_ranking') => void;
   setSelectedPandal: (pandal: PandalWithStats | null) => void;
   setSelectedFriendProfile: (friend: Profile | null) => void;
   setSearchQuery: (query: string) => void;
@@ -118,8 +120,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [friendships] = useState<Friendship[]>([]);
   const [activities] = useState<FriendActivity[]>([]);
 
-  const [activeTab, setActiveTabState] = useState<'discover' | 'map' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password' | 'menu'>(() => {
+  const [activeTab, setActiveTabState] = useState<'discover' | 'map' | 'nearby' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password'>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.TAB);
+    if (saved === 'menu') return 'discover';
     return (saved as any) || 'discover';
   });
 
@@ -127,6 +130,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setActiveTabState(tab);
     localStorage.setItem(STORAGE_KEYS.TAB, tab);
   };
+  const [voteActiveView, setVoteActiveView] = useState<'cast_vote' | 'pandals_ranking'>('cast_vote');
   const [selectedPandalId, setSelectedPandalId] = useState<string | null>(null);
   const [selectedFriendProfile, setSelectedFriendProfile] = useState<Profile | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -351,6 +355,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         pendingOutgoingRequests,
         activities,
         activeTab,
+        voteActiveView,
         selectedPandal,
         selectedFriendProfile,
         searchQuery,
@@ -361,6 +366,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         theme,
 
         setActiveTab,
+        setVoteActiveView,
         setSelectedPandal: (pandal) => setSelectedPandalId(pandal?.id || null),
         setSelectedFriendProfile,
         setSearchQuery,
