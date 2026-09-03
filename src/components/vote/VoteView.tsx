@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useStore } from '../../lib/store';
 import { Card, Button, Tabs } from '../ui';
 import {
@@ -11,7 +11,9 @@ import {
   TrendingUp,
   Vote,
   ClipboardList,
-  Search
+  Search,
+  SlidersHorizontal,
+  X
 } from 'lucide-react';
 import type { RatingCategoryCode } from '../../types/database.types';
 import type { PandalRanking } from '../../types/ranking.types';
@@ -66,6 +68,8 @@ export const VoteView: React.FC = () => {
   const { pandals, setSelectedPandal } = useStore();
 
   const [voteSearch, setVoteSearch] = useState('');
+  const [isVoteSearchExpanded, setIsVoteSearchExpanded] = useState(false);
+  const voteSearchInputRef = useRef<HTMLInputElement>(null);
 
   // View Switcher: 'cast_vote' vs 'pandals_ranking'
   const [activeView, setActiveView] = useState<'cast_vote' | 'pandals_ranking'>('cast_vote');
@@ -134,43 +138,98 @@ export const VoteView: React.FC = () => {
 
   return (
     <div className="vote-view-container">
-      {/* Top Header & View Switcher */}
-      <div className="vote-header-block">        <div className="vote-title-and-switch">
-          <div className="title-text-group">
-            <h1 className="vote-main-title">
-              {activeView === 'cast_vote' ? "Rate Kolkata's Pandals" : 'Official Fair Pandal Rankings'}
-            </h1>
-          </div>
-
-          <Tabs 
-            variant="segmented"
-            activeId={activeView}
-            onChange={(id) => {
-              setActiveView(id as 'cast_vote' | 'pandals_ranking');
-              if (id === 'pandals_ranking') setRankingPage(1);
-            }}
-            items={[
-              { id: 'cast_vote', label: 'Cast Vote', icon: <Vote size={15} /> },
-              { id: 'pandals_ranking', label: 'Pandals Ranking', icon: <TrendingUp size={15} /> }
-            ]}
-          />
+      {/* Top Header */}
+      <div className="vote-header-block">
+        <div className="title-text-group">
+          <h1 className="vote-main-title">
+            {activeView === 'cast_vote' ? "Rate Kolkata's Pandals" : 'Official Fair Pandal Rankings'}
+          </h1>
         </div>
       </div>
 
-      <div className="vote-search-wrapper" style={{ marginBottom: '16px' }}>
-        <div className="search-bar-glass beam-interactive" style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '10px 16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <Search size={16} className="text-muted" style={{ marginRight: '8px' }} />
-          <input 
-            type="text" 
-            placeholder="Search pandals to rate..." 
-            value={voteSearch}
-            onChange={(e) => {
-              setVoteSearch(e.target.value);
-              setRankingPage(1);
-            }}
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', width: '100%', outline: 'none', fontSize: '14px' }}
-          />
-        </div>
+      {/* Responsive Filter Switcher & Morphing Search Controls Row */}
+      <div className="vote-controls-row">
+        {isVoteSearchExpanded ? (
+          <>
+            {/* Left: Collapsed Filter Icon Button */}
+            <button
+              type="button"
+              className="vote-filter-collapsed-btn"
+              onClick={() => {
+                setIsVoteSearchExpanded(false);
+                setVoteSearch('');
+              }}
+              title="Show filter tabs"
+              aria-label="Show filter tabs"
+            >
+              <SlidersHorizontal size={17} />
+            </button>
+
+            {/* Right: Expanded Smooth Search Bar */}
+            <div className="vote-search-expanded-bar">
+              <Search size={15} className="vote-search-icon-muted" />
+              <input
+                ref={voteSearchInputRef}
+                type="text"
+                className="vote-search-input"
+                placeholder="Search pandals to rate..."
+                value={voteSearch}
+                onChange={(e) => {
+                  setVoteSearch(e.target.value);
+                  setRankingPage(1);
+                }}
+              />
+              <button
+                type="button"
+                className="vote-search-clear-btn"
+                onClick={() => {
+                  if (voteSearch) {
+                    setVoteSearch('');
+                    voteSearchInputRef.current?.focus();
+                  } else {
+                    setIsVoteSearchExpanded(false);
+                  }
+                }}
+                title={voteSearch ? "Clear search" : "Close search"}
+                aria-label={voteSearch ? "Clear search" : "Close search"}
+              >
+                <X size={15} />
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Left: Compact Filter Tabs Switcher */}
+            <div className="vote-filter-holder">
+              <Tabs 
+                variant="segmented"
+                activeId={activeView}
+                onChange={(id) => {
+                  setActiveView(id as 'cast_vote' | 'pandals_ranking');
+                  if (id === 'pandals_ranking') setRankingPage(1);
+                }}
+                items={[
+                  { id: 'cast_vote', label: 'Cast Vote', icon: <Vote size={15} /> },
+                  { id: 'pandals_ranking', label: 'Pandals Ranking', icon: <TrendingUp size={15} /> }
+                ]}
+              />
+            </div>
+
+            {/* Right: Search Icon Trigger */}
+            <button
+              type="button"
+              className="vote-search-icon-btn"
+              onClick={() => {
+                setIsVoteSearchExpanded(true);
+                setTimeout(() => voteSearchInputRef.current?.focus(), 50);
+              }}
+              title="Search pandals"
+              aria-label="Search pandals"
+            >
+              <Search size={17} />
+            </button>
+          </>
+        )}
       </div>
 
       {/* Category Selector Pills (Shared by both views) */}
@@ -333,6 +392,158 @@ export const VoteView: React.FC = () => {
           )}
         </div>
       )}
+
+      <style>{`
+        .vote-controls-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          width: 100%;
+          margin-bottom: 14px;
+        }
+
+        .vote-filter-holder {
+          display: flex;
+          align-items: center;
+          max-width: calc(100% - 50px);
+          animation: voteFilterFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .vote-filter-collapsed-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          color: var(--kirti-red);
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+          animation: voteIconFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .vote-filter-collapsed-btn:hover {
+          background: var(--bg-card-subtle);
+          border-color: var(--kirti-red);
+          transform: scale(1.05);
+        }
+        .vote-filter-collapsed-btn:active {
+          transform: scale(0.92);
+        }
+
+        .vote-search-icon-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          color: var(--text-primary);
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+          animation: voteIconFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .vote-search-icon-btn:hover {
+          background: var(--bg-card-subtle);
+          border-color: var(--border-focus);
+          transform: scale(1.05);
+        }
+        .vote-search-icon-btn:active {
+          transform: scale(0.92);
+        }
+
+        .vote-search-expanded-bar {
+          display: flex;
+          align-items: center;
+          flex: 1;
+          height: 40px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-focus);
+          border-radius: var(--radius-full);
+          padding: 0 12px;
+          gap: 8px;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+          animation: voteSearchExpand 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .vote-search-icon-muted {
+          color: var(--text-muted);
+          flex-shrink: 0;
+        }
+        .vote-search-input {
+          flex: 1;
+          background: transparent;
+          border: none;
+          outline: none;
+          color: var(--text-primary);
+          font-family: var(--font-sans);
+          font-size: 13.5px;
+        }
+        .vote-search-input::placeholder {
+          color: var(--text-muted);
+        }
+        .vote-search-clear-btn {
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4px;
+          border-radius: var(--radius-full);
+          transition: all 0.15s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .vote-search-clear-btn:hover {
+          color: var(--text-primary);
+          background: var(--border);
+        }
+        .vote-search-clear-btn:active {
+          transform: scale(0.9);
+        }
+
+        @keyframes voteSearchExpand {
+          from {
+            opacity: 0;
+            transform: scale(0.96) translateX(10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateX(0);
+          }
+        }
+        @keyframes voteFilterFadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.97);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        @keyframes voteIconFadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.85);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 };

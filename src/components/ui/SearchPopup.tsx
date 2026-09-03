@@ -6,11 +6,17 @@ import { Badge } from './Badge';
 export interface SearchPopupProps {
   className?: string;
   placeholder?: string;
+  autoFocus?: boolean;
+  onClose?: () => void;
+  showCloseAlways?: boolean;
 }
 
 export const SearchPopup: React.FC<SearchPopupProps> = ({
   className = '',
-  placeholder = 'Search pandals, locations, themes...'
+  placeholder = 'Search pandals, locations, themes...',
+  autoFocus = false,
+  onClose,
+  showCloseAlways = false
 }) => {
   const {
     searchQuery,
@@ -24,8 +30,15 @@ export const SearchPopup: React.FC<SearchPopupProps> = ({
 
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const q = searchQuery.toLowerCase().trim();
+
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
 
   const matchingPandals = q
     ? pandals.filter(p =>
@@ -52,7 +65,14 @@ export const SearchPopup: React.FC<SearchPopupProps> = ({
       }
     };
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
+      if (e.key === 'Escape') {
+        if (searchQuery) {
+          setSearchQuery('');
+        } else {
+          setIsOpen(false);
+          onClose?.();
+        }
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -61,7 +81,7 @@ export const SearchPopup: React.FC<SearchPopupProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [searchQuery, setSearchQuery, onClose]);
 
   const handleSelectPandal = (pandal: any) => {
     setSelectedPandal(pandal);
@@ -79,6 +99,7 @@ export const SearchPopup: React.FC<SearchPopupProps> = ({
       <div className={`search-bar-wrap ${isOpen && q ? 'has-popup' : ''}`}>
         <Search size={15} className="search-icon" />
         <input
+          ref={inputRef}
           type="text"
           className="search-field-input"
           value={searchQuery}
@@ -89,17 +110,23 @@ export const SearchPopup: React.FC<SearchPopupProps> = ({
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder}
         />
-        {searchQuery && (
+        {(searchQuery || showCloseAlways) && (
           <button
             type="button"
             className="search-clear-btn"
             onClick={() => {
-              setSearchQuery('');
-              setIsOpen(false);
+              if (searchQuery) {
+                setSearchQuery('');
+                inputRef.current?.focus();
+              } else {
+                setIsOpen(false);
+                onClose?.();
+              }
             }}
-            title="Clear search"
+            title={searchQuery ? "Clear search text" : "Close search"}
+            aria-label={searchQuery ? "Clear search text" : "Close search"}
           >
-            <X size={14} />
+            <X size={15} />
           </button>
         )}
       </div>

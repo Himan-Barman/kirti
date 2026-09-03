@@ -24,16 +24,60 @@ export const Tabs: React.FC<TabsProps> = ({
   rounded = 'lg',
   className = ''
 }) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const tabRefs = React.useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  const scrollToCenter = React.useCallback((id: string, smooth: boolean = true) => {
+    const btn = tabRefs.current.get(id);
+    if (!btn) return;
+
+    try {
+      btn.scrollIntoView({
+        behavior: smooth ? 'smooth' : 'auto',
+        inline: 'center',
+        block: 'nearest'
+      });
+    } catch {
+      const container = containerRef.current || btn.parentElement;
+      if (container) {
+        const containerWidth = container.clientWidth;
+        const btnLeft = btn.offsetLeft;
+        const btnWidth = btn.offsetWidth;
+        const targetScroll = btnLeft - (containerWidth / 2) + (btnWidth / 2);
+        container.scrollTo({
+          left: Math.max(0, targetScroll),
+          behavior: smooth ? 'smooth' : 'auto'
+        });
+      }
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollToCenter(activeId, false);
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [activeId, scrollToCenter]);
+
+  const handleTabClick = (id: string) => {
+    onChange(id);
+    scrollToCenter(id, true);
+  };
+
   return (
-    <div className={`ui-tabs tabs-${variant} tabs-rounded-${rounded} ${className}`}>
+    <div ref={containerRef} className={`ui-tabs tabs-${variant} tabs-rounded-${rounded} ${className}`}>
       {items.map((tab) => {
         const isActive = tab.id === activeId;
         return (
           <button
             key={tab.id}
+            ref={(el) => {
+              if (el) tabRefs.current.set(tab.id, el);
+              else tabRefs.current.delete(tab.id);
+            }}
             type="button"
             className={`tab-btn ${isActive ? 'is-active' : ''}`}
-            onClick={() => onChange(tab.id)}
+            onClick={() => handleTabClick(tab.id)}
           >
             {tab.icon && <span className="tab-icon">{tab.icon}</span>}
             <span className="tab-label">{tab.label}</span>
@@ -86,6 +130,8 @@ export const Tabs: React.FC<TabsProps> = ({
           font-family: var(--font-sans);
           white-space: nowrap;
           flex-shrink: 0;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
         }
         @media (max-width: 600px) {
           .tabs-segmented .tab-btn {
@@ -132,12 +178,16 @@ export const Tabs: React.FC<TabsProps> = ({
           white-space: nowrap;
           transition: all 0.18s ease;
           font-family: var(--font-sans);
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
         }
         .tabs-pills .tab-btn:hover {
           border-color: var(--text-primary);
           color: var(--text-primary);
         }
         .tabs-pills .tab-btn:active {
+          transform: scale(0.95);
+        }
           transform: scale(0.95);
         }
         .tabs-pills .tab-btn.is-active {

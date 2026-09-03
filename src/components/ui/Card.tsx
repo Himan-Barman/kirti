@@ -28,6 +28,9 @@ export const Card: React.FC<CardProps> = ({
           background: var(--bg-card);
           box-shadow: var(--shadow-sm);
           position: relative;
+          -webkit-tap-highlight-color: transparent !important;
+          overflow: hidden;
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
         /* Padding */
@@ -60,6 +63,10 @@ export const Card: React.FC<CardProps> = ({
         }
         .card-interactive {
           cursor: pointer;
+          touch-action: manipulation;
+        }
+        .card-interactive:active {
+          transform: scale(0.985);
         }
       `}</style>
     </div>

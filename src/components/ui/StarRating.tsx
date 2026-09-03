@@ -84,6 +84,8 @@ export const StarRating: React.FC<StarRatingProps> = ({
           justify-content: center;
           cursor: default;
           outline: none;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
         }
         .star-btn.clickable {
           cursor: pointer;
@@ -91,6 +93,9 @@ export const StarRating: React.FC<StarRatingProps> = ({
         }
         .star-btn.clickable:hover {
           transform: scale(1.25);
+        }
+        .star-btn.clickable:active {
+          transform: scale(0.9);
         }
         .star-svg.filled {
           color: var(--kirti-gold);

@@ -154,10 +154,11 @@
   --modal-backdrop: rgba(0, 0, 0, 0.85);
 }
 
-* {
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 html, body {
@@ -166,6 +167,8 @@ html, body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
   line-height: 1.5;
   font-size: 15px;
   min-height: 100vh;
@@ -173,6 +176,11 @@ html, body {
   max-width: 100vw;
   overflow-x: clip;
   transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+button, a, input, select, textarea, [role="button"], [tabindex], .ui-btn, .tab-btn, .pandal-card, .friend-bar-row, .pillar-item, .view-btn, .star-tap-btn, .theme-toggle-btn, .mobile-nav-btn {
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation;
 }
 
 /* Lenis Smooth Scrolling Support */
@@ -310,6 +318,11 @@ p {
 .search-bar-wrap,
 .tab-btn,
 .nav-link,
+.mobile-search-toggle,
+.vote-search-icon-btn,
+.vote-filter-collapsed-btn,
+.vote-search-expanded-bar,
+.search-bar-wrap,
 .beam-interactive {
   --border-angle: 0deg;
   position: relative;
@@ -330,6 +343,10 @@ p {
 .ui-btn.btn-outline::after,
 .ui-btn.btn-subtle::after,
 .theme-toggle-btn::after,
+.mobile-search-toggle::after,
+.vote-search-icon-btn::after,
+.vote-filter-collapsed-btn::after,
+.vote-search-expanded-bar::after,
 .profile-pill::after,
 .ui-select-trigger::after,
 .search-bar-wrap::after,
@@ -373,8 +390,14 @@ p {
 .ui-btn.btn-outline:hover::after,
 .ui-btn.btn-subtle:hover::after,
 .theme-toggle-btn:hover::after,
+.mobile-search-toggle:hover::after,
+.vote-search-icon-btn:hover::after,
+.vote-filter-collapsed-btn:hover::after,
+.vote-search-expanded-bar:hover::after,
+.vote-search-expanded-bar:focus-within::after,
 .profile-pill:hover::after,
 .ui-select-trigger:hover::after,
+.search-bar-wrap:hover::after,
 .search-bar-wrap:focus-within::after,
 .tab-btn:hover::after,
 .nav-link:hover::after,
@@ -390,8 +413,14 @@ p {
 .ui-btn.btn-outline:hover,
 .ui-btn.btn-subtle:hover,
 .theme-toggle-btn:hover,
+.mobile-search-toggle:hover,
+.vote-search-icon-btn:hover,
+.vote-filter-collapsed-btn:hover,
+.vote-search-expanded-bar:hover,
+.vote-search-expanded-bar:focus-within,
 .profile-pill:hover,
 .ui-select-trigger:hover,
+.search-bar-wrap:hover,
 .search-bar-wrap:focus-within {
   border-color: transparent !important;
   box-shadow: 0 0 16px var(--beam-glow-color) !important;

@@ -119,7 +119,13 @@ export const PandalCard: React.FC<PandalCardProps> = ({ pandal }) => {
           border: 1px solid var(--border);
           cursor: pointer;
           position: relative;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+          overflow: hidden;
           transition: transform 0.22s ease, box-shadow 0.22s ease;
+        }
+        .pandal-card:active {
+          transform: scale(0.98);
         }
         .pandal-img-wrap {
           position: relative;

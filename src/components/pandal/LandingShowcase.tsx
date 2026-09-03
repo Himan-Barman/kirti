@@ -478,6 +478,12 @@ export const LandingShowcase: React.FC = () => {
           display: flex;
           align-items: flex-start;
           gap: 14px;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .pillar-item:active {
+          transform: scale(0.98);
         }
         .pillar-icon-box {
           width: 42px;

@@ -85,11 +85,16 @@ export const Modal: React.FC<ModalProps> = ({
           justify-content: center;
           z-index: 20;
           transition: all 0.18s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
         }
         .ui-modal-close-btn:hover {
           background: var(--text-primary);
           color: var(--bg-app);
           transform: scale(1.05);
+        }
+        .ui-modal-close-btn:active {
+          transform: scale(0.92);
         }
 
         @keyframes modalFadeIn {

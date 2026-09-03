@@ -2,7 +2,7 @@ import React from 'react';
 import { useStore } from '../../lib/store';
 import { useAuth } from '../../lib/auth';
 import { SearchPopup, Avatar } from '../ui';
-import { Compass, Users, Award, MapPin, Sun, Moon, Search, X } from 'lucide-react';
+import { Compass, Users, Award, MapPin, Sun, Moon, Search } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const {
@@ -22,116 +22,123 @@ export const Navbar: React.FC = () => {
   return (
     <header className="k-header">
       <div className="header-container">
-        {/* Brand Logo */}
-        <div className="brand-group" onClick={() => setActiveTab('discover')}>
-          <div className="logo-badge">
-            <span className="logo-text">KIRTI</span>
-            <span className="logo-dot"></span>
+        {isMobileSearchOpen ? (
+          <div className="mobile-search-full-bar">
+            <SearchPopup
+              placeholder="Search pandals, locations, themes..."
+              autoFocus={true}
+              showCloseAlways={true}
+              onClose={() => setIsMobileSearchOpen(false)}
+            />
           </div>
-          <span className="logo-bengali-mark">কীর্তি</span>
-        </div>
+        ) : (
+          <div className="header-inner-row">
+            {/* Brand Logo */}
+            <div className="brand-group" onClick={() => setActiveTab('discover')}>
+              <div className="logo-badge">
+                <span className="logo-text">KIRTI</span>
+                <span className="logo-dot"></span>
+              </div>
+              <span className="logo-bengali-mark">কীর্তি</span>
+            </div>
 
-        {/* Global SearchBar with Instant Dropdown Popup (Desktop) */}
-        <div className="header-search">
-          <SearchPopup placeholder="Search pandals, artists, locations, themes..." />
-        </div>
+            {/* Global SearchBar with Instant Dropdown Popup (Desktop) */}
+            <div className="header-search">
+              <SearchPopup placeholder="Search pandals, artists, locations, themes..." />
+            </div>
 
-        {/* Right Nav Actions */}
-        <div className="header-right-actions">
-          {/* Mobile Search Toggle Button */}
-          <button
-            className="mobile-search-toggle"
-            onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-            title="Search"
-            aria-label="Search"
-          >
-            {isMobileSearchOpen ? <X size={16} /> : <Search size={16} />}
-          </button>
-          {/* Navigation Tabs (Desktop) */}
-          <nav className="desktop-nav">
-            <button
-              className={`nav-link ${activeTab === 'discover' ? 'active' : ''}`}
-              onClick={() => setActiveTab('discover')}
-            >
-              <Compass size={16} />
-              <span>Discover</span>
-            </button>
-
-            <button
-              className={`nav-link ${activeTab === 'map' ? 'active' : ''}`}
-              onClick={() => setActiveTab('map')}
-            >
-              <MapPin size={16} />
-              <span>Map</span>
-            </button>
-
-            {user && (
+            {/* Right Nav Actions */}
+            <div className="header-right-actions">
+              {/* Mobile Search Toggle Button */}
               <button
-                className={`nav-link ${activeTab === 'friends' ? 'active' : ''}`}
-                onClick={() => setActiveTab('friends')}
+                className="mobile-search-toggle"
+                onClick={() => setIsMobileSearchOpen(true)}
+                title="Search"
+                aria-label="Open search bar"
               >
-                <Users size={16} />
-                <span>Friends</span>
-                {pendingIncomingRequests.length > 0 && (
-                  <span className="badge-count">{pendingIncomingRequests.length}</span>
+                <Search size={16} />
+              </button>
+
+              {/* Navigation Tabs (Desktop) */}
+              <nav className="desktop-nav">
+                <button
+                  className={`nav-link ${activeTab === 'discover' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('discover')}
+                >
+                  <Compass size={16} />
+                  <span>Discover</span>
+                </button>
+
+                <button
+                  className={`nav-link ${activeTab === 'map' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('map')}
+                >
+                  <MapPin size={16} />
+                  <span>Map</span>
+                </button>
+
+                {user && (
+                  <button
+                    className={`nav-link ${activeTab === 'friends' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('friends')}
+                  >
+                    <Users size={16} />
+                    <span>Friends</span>
+                    {pendingIncomingRequests.length > 0 && (
+                      <span className="badge-count">{pendingIncomingRequests.length}</span>
+                    )}
+                  </button>
+                )}
+
+                <button
+                  className={`nav-link ${activeTab === 'vote' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('vote')}
+                >
+                  <Award size={16} />
+                  <span>Vote</span>
+                </button>
+              </nav>
+
+              {/* Theme Toggle Button */}
+              <button
+                className="theme-toggle-btn"
+                onClick={toggleTheme}
+                title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? (
+                  <Sun size={17} className="theme-sun-icon" />
+                ) : (
+                  <Moon size={17} className="theme-moon-icon" />
                 )}
               </button>
-            )}
 
-            <button
-              className={`nav-link ${activeTab === 'vote' ? 'active' : ''}`}
-              onClick={() => setActiveTab('vote')}
-            >
-              <Award size={16} />
-              <span>Vote</span>
-            </button>
-          </nav>
-
-          {/* Theme Toggle Button */}
-          <button
-            className="theme-toggle-btn"
-            onClick={toggleTheme}
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? (
-              <Sun size={17} className="theme-sun-icon" />
-            ) : (
-              <Moon size={17} className="theme-moon-icon" />
-            )}
-          </button>
-
-          {/* User Profile / Login */}
-          {user ? (
-            <button
-              className={`profile-pill ${activeTab === 'profile' ? 'active' : ''}`}
-              onClick={() => setActiveTab('profile')}
-              title="My Puja Passport"
-            >
-              <Avatar src={currentUser.avatar_url} alt={currentUser.display_name} size="xs" />
-              <span className="nav-journey-badge">
-                <span className="journey-dot"></span>
-                {visitedCount} Visited
-              </span>
-            </button>
-          ) : (
-            <button
-              className="auth-submit-btn"
-              style={{ padding: '6px 14px', margin: 0, height: '36px', width: 'auto', fontSize: '14px', borderRadius: '20px' }}
-              onClick={() => setActiveTab('signup')}
-            >
-              Sign Up
-            </button>
-          )}
-        </div>
+              {/* User Profile / Login */}
+              {user ? (
+                <button
+                  className={`profile-pill ${activeTab === 'profile' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('profile')}
+                  title="My Puja Passport"
+                >
+                  <Avatar src={currentUser.avatar_url} alt={currentUser.display_name} size="xs" />
+                  <span className="nav-journey-badge">
+                    <span className="journey-dot"></span>
+                    {visitedCount} Visited
+                  </span>
+                </button>
+              ) : (
+                <button
+                  className="auth-submit-btn"
+                  style={{ padding: '6px 14px', margin: 0, height: '36px', width: 'auto', fontSize: '14px', borderRadius: '20px' }}
+                  onClick={() => setActiveTab('signup')}
+                >
+                  Sign Up
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Expandable Mobile Search Drawer */}
-      {isMobileSearchOpen && (
-        <div className="mobile-search-bar-drawer">
-          <SearchPopup placeholder="Search pandals, artists, locations..." />
-        </div>
-      )}
 
       <style>{`
         .k-header {
@@ -162,6 +169,57 @@ export const Navbar: React.FC = () => {
             gap: 10px;
           }
         }
+        .header-inner-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          gap: 20px;
+          animation: navbarRowFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @media (max-width: 768px) {
+          .header-inner-row {
+            gap: 10px;
+          }
+        }
+        .mobile-search-full-bar {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          animation: mobileSearchExpand 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .mobile-search-full-bar .ui-search-popup-container {
+          width: 100%;
+          max-width: 100%;
+        }
+        .mobile-search-full-bar .search-bar-wrap {
+          width: 100%;
+          height: 42px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-focus);
+          border-radius: var(--radius-full);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+        @keyframes mobileSearchExpand {
+          from {
+            opacity: 0;
+            transform: scale(0.96) translateX(12px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateX(0);
+          }
+        }
+        @keyframes navbarRowFadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
         .mobile-search-toggle {
           display: none;
           width: 36px;
@@ -174,6 +232,11 @@ export const Navbar: React.FC = () => {
           justify-content: center;
           cursor: pointer;
           transition: all 0.18s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .mobile-search-toggle:active {
+          transform: scale(0.92);
         }
         .mobile-search-toggle:hover {
           background: var(--bg-card-subtle);
@@ -183,16 +246,6 @@ export const Navbar: React.FC = () => {
           .mobile-search-toggle {
             display: flex;
           }
-        }
-        .mobile-search-bar-drawer {
-          padding: 8px 14px 12px 14px;
-          background: var(--bg-header);
-          border-top: 1px solid var(--border-subtle);
-          animation: searchDrawerSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes searchDrawerSlide {
-          from { opacity: 0; transform: translateY(-6px); }
-          to { opacity: 1; transform: translateY(0); }
         }
         .brand-group {
           display: flex;
@@ -305,10 +358,15 @@ export const Navbar: React.FC = () => {
           justify-content: center;
           cursor: pointer;
           transition: all 0.18s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
         }
         .theme-toggle-btn:hover {
           background: var(--bg-card-subtle);
           border-color: var(--border-focus);
+        }
+        .theme-toggle-btn:active {
+          transform: scale(0.92);
         }
         .theme-sun-icon {
           color: var(--kirti-gold);
@@ -326,9 +384,14 @@ export const Navbar: React.FC = () => {
           background: var(--bg-card);
           cursor: pointer;
           transition: all 0.18s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
         }
         .profile-pill:hover {
           border-color: var(--border-focus);
+        }
+        .profile-pill:active {
+          transform: scale(0.95);
         }
         .profile-pill.active {
           border-color: var(--kirti-red);

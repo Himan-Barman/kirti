@@ -47,9 +47,12 @@ export const Button: React.FC<ButtonProps> = ({
           user-select: none;
           position: relative;
           outline: none;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+          overflow: hidden;
         }
         .ui-btn:active:not(:disabled) {
-          transform: scale(0.97);
+          transform: scale(0.96);
         }
         .ui-btn:disabled {
           opacity: 0.5;

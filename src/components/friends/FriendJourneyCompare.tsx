@@ -414,6 +414,9 @@ export const FriendJourneyCompare: React.FC<FriendJourneyCompareProps> = ({ show
           box-sizing: border-box;
           transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
           gap: 16px;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+          overflow: hidden;
         }
         .friend-bar-row:hover {
           transform: translateY(-2px);

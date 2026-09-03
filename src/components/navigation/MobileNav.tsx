@@ -116,7 +116,11 @@ export const MobileNav: React.FC = () => {
           cursor: pointer;
           transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
-          -webkit-tap-highlight-color: transparent;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .mobile-nav-btn:active {
+          transform: scale(0.92);
         }
         .mobile-nav-btn:hover,
         .mobile-nav-btn.active {

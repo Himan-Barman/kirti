@@ -27,7 +27,9 @@ export const AppContent: React.FC = () => {
     selectedPandal,
     selectedFriendProfile,
     isLoading,
-    setActiveTab
+    setActiveTab,
+    setSelectedPandal,
+    setSelectedFriendProfile
   } = useStore();
 
   React.useEffect(() => {
@@ -39,6 +41,68 @@ export const AppContent: React.FC = () => {
       setActiveTab('reset-password');
     }
   }, [setActiveTab]);
+
+  // Browser History & Mobile Back Navigation Controller
+  React.useEffect(() => {
+    if (!window.history.state) {
+      window.history.replaceState({ type: 'tab', tab: activeTab }, '', window.location.href);
+    }
+
+    const handlePopState = (e: PopStateEvent) => {
+      // 1. If a friend profile modal is open, close it
+      if (selectedFriendProfile) {
+        setSelectedFriendProfile(null);
+        return;
+      }
+
+      // 2. If a pandal detail modal is open, close it
+      if (selectedPandal) {
+        setSelectedPandal(null);
+        return;
+      }
+
+      // 3. If history state has a tab, navigate to it
+      if (e.state && e.state.tab) {
+        setActiveTab(e.state.tab);
+      } else if (activeTab !== 'discover') {
+        setActiveTab('discover');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [selectedFriendProfile, selectedPandal, activeTab, setSelectedFriendProfile, setSelectedPandal, setActiveTab]);
+
+  // Push history state when user opens a pandal detail
+  const lastPandalIdRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (selectedPandal && selectedPandal.id !== lastPandalIdRef.current) {
+      lastPandalIdRef.current = selectedPandal.id;
+      window.history.pushState({ type: 'pandal', id: selectedPandal.id, tab: activeTab }, '', window.location.href);
+    } else if (!selectedPandal) {
+      lastPandalIdRef.current = null;
+    }
+  }, [selectedPandal, activeTab]);
+
+  // Push history state when user opens a friend profile
+  const lastFriendIdRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (selectedFriendProfile && selectedFriendProfile.id !== lastFriendIdRef.current) {
+      lastFriendIdRef.current = selectedFriendProfile.id;
+      window.history.pushState({ type: 'friend', id: selectedFriendProfile.id, tab: activeTab }, '', window.location.href);
+    } else if (!selectedFriendProfile) {
+      lastFriendIdRef.current = null;
+    }
+  }, [selectedFriendProfile, activeTab]);
+
+  // Push history state when user changes active tab
+  const lastTabRef = React.useRef<string>(activeTab);
+  React.useEffect(() => {
+    if (activeTab !== lastTabRef.current) {
+      lastTabRef.current = activeTab;
+      window.history.pushState({ type: 'tab', tab: activeTab }, '', window.location.href);
+    }
+  }, [activeTab]);
 
   // Scroll to top immediately on tab change or pandal select
   React.useEffect(() => {

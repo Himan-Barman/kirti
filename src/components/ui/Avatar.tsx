@@ -39,6 +39,8 @@ export const Avatar: React.FC<AvatarProps> = ({
           flex-shrink: 0;
           user-select: none;
           position: relative;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
         }
         .ui-avatar.is-clickable {
           cursor: pointer;
@@ -47,6 +49,9 @@ export const Avatar: React.FC<AvatarProps> = ({
         .ui-avatar.is-clickable:hover {
           transform: scale(1.08);
           z-index: 5;
+        }
+        .ui-avatar.is-clickable:active {
+          transform: scale(0.92);
         }
         .ui-avatar.is-bordered {
           border: 2px solid var(--border);
