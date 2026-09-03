@@ -4,8 +4,12 @@ import { useStore } from '../../lib/store';
 import { Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import './Auth.css';
 
+const isValidEmail = (emailStr: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr);
+};
+
 export const ForgotPasswordView: React.FC = () => {
-  const { setActiveTab } = useStore();
+  const { setActiveTab, showToast } = useStore();
 
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,19 +18,31 @@ export const ForgotPasswordView: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      showToast('Please enter your email', 'warning');
+      return;
+    }
+
+    if (!isValidEmail(trimmedEmail)) {
+      showToast('Please enter a valid email address', 'warning');
+      return;
+    }
 
     setLoading(true);
     setError(null);
 
-    const { error: resetError } = await supabase!.auth.resetPasswordForEmail(email, {
+    const { error: resetError } = await supabase!.auth.resetPasswordForEmail(trimmedEmail, {
       redirectTo: window.location.origin,
     });
 
     if (resetError) {
+      showToast('Unable to send reset link. Please check email address.', 'error');
       setError('Unable to send reset link. Please check the email address and try again.');
       setLoading(false);
     } else {
+      showToast('Reset link sent to your email', 'success');
       setSuccess(true);
       setLoading(false);
     }
@@ -71,7 +87,7 @@ export const ForgotPasswordView: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="auth-form">
+            <form onSubmit={handleSubmit} noValidate className="auth-form">
               <div className="input-group">
                 <label htmlFor="reset-email">Email</label>
                 <div className="input-wrapper beam-interactive">

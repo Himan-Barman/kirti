@@ -4,6 +4,23 @@ import { useStore } from '../../lib/store';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import './Auth.css';
 
+const isValidEmail = (emailStr: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr);
+};
+
+const validatePassword = (pass: string): string | null => {
+  if (pass.length < 8) {
+    return 'Password must be at least 8 characters';
+  }
+  if (!/[0-9]/.test(pass)) {
+    return 'Password must include at least one number (0-9)';
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(pass)) {
+    return 'Password must include at least one special character';
+  }
+  return null;
+};
+
 export const SignupView: React.FC = () => {
   const { signUp } = useAuth();
   const { setActiveTab, showToast } = useStore();
@@ -15,16 +32,32 @@ export const SignupView: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
     
-    if (password.length < 8) {
-      showToast('Password must be at least 8 characters', 'warning');
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      showToast('Please enter your email', 'warning');
+      return;
+    }
+    
+    if (!isValidEmail(trimmedEmail)) {
+      showToast('Please enter a valid email address', 'warning');
+      return;
+    }
+
+    if (!password) {
+      showToast('Please enter a password', 'warning');
+      return;
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      showToast(passwordError, 'warning');
       return;
     }
 
     setLoading(true);
 
-    const { error: signUpError } = await signUp(email, password);
+    const { error: signUpError } = await signUp(trimmedEmail, password);
 
     if (signUpError) {
       let msg = "Couldn't create account. Try again";
@@ -40,7 +73,7 @@ export const SignupView: React.FC = () => {
       setLoading(false);
     } else {
       setLoading(false);
-      showToast('Welcome', 'success');
+      showToast('Welcome to KIRTI', 'success');
       setActiveTab('discover');
     }
   };
@@ -55,7 +88,7 @@ export const SignupView: React.FC = () => {
         </div>
         <p className="auth-subtitle">Durga Puja. Together.</p>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} noValidate className="auth-form">
           <div className="input-group">
             <label htmlFor="signup-email">Email</label>
             <div className="input-wrapper beam-interactive">

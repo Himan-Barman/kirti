@@ -4,9 +4,22 @@ import { useStore } from '../../lib/store';
 import { Eye, EyeOff, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import './Auth.css';
 
+const validatePassword = (pass: string): string | null => {
+  if (pass.length < 8) {
+    return 'Password must be at least 8 characters';
+  }
+  if (!/[0-9]/.test(pass)) {
+    return 'Password must include at least one number (0-9)';
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(pass)) {
+    return 'Password must include at least one special character';
+  }
+  return null;
+};
+
 export const ResetPasswordView: React.FC = () => {
   const { updateUserPassword } = useAuth();
-  const { setActiveTab } = useStore();
+  const { setActiveTab, showToast } = useStore();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -19,14 +32,24 @@ export const ResetPasswordView: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!password || !confirmPassword) return;
+    if (!password) {
+      showToast('Please enter a new password', 'warning');
+      return;
+    }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      showToast(passwordError, 'warning');
+      return;
+    }
+
+    if (!confirmPassword) {
+      showToast('Please confirm your password', 'warning');
       return;
     }
 
     if (password !== confirmPassword) {
+      showToast('Passwords do not match', 'warning');
       setError('Passwords do not match.');
       return;
     }
@@ -37,15 +60,17 @@ export const ResetPasswordView: React.FC = () => {
     const { error: updateError } = await updateUserPassword(password);
 
     if (updateError) {
+      let msg = 'Unable to update your password. Please try again.';
       if (updateError.message.toLowerCase().includes('weak')) {
-        setError('Password must meet the minimum security requirements.');
+        msg = 'Password must meet security requirements.';
       } else if (updateError.message.toLowerCase().includes('expired')) {
-        setError('The password reset link has expired. Please request a new one.');
-      } else {
-        setError('Unable to update your password. Please try again.');
+        msg = 'The password reset link has expired. Please request a new one.';
       }
+      showToast(msg, 'error');
+      setError(msg);
       setLoading(false);
     } else {
+      showToast('Password updated successfully', 'success');
       setSuccess(true);
       setLoading(false);
     }
@@ -87,7 +112,7 @@ export const ResetPasswordView: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="auth-form">
+            <form onSubmit={handleSubmit} noValidate className="auth-form">
               <div className="input-group">
                 <label htmlFor="new-password">New Password</label>
                 <div className="input-wrapper beam-interactive">

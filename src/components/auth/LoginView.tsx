@@ -4,6 +4,10 @@ import { useStore } from '../../lib/store';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import './Auth.css';
 
+const isValidEmail = (emailStr: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr);
+};
+
 export const LoginView: React.FC = () => {
   const { signIn } = useAuth();
   const { setActiveTab, showToast } = useStore();
@@ -15,11 +19,26 @@ export const LoginView: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      showToast('Please enter your email', 'warning');
+      return;
+    }
+
+    if (!isValidEmail(trimmedEmail)) {
+      showToast('Please enter a valid email address', 'warning');
+      return;
+    }
+
+    if (!password) {
+      showToast('Please enter your password', 'warning');
+      return;
+    }
 
     setLoading(true);
 
-    const { error: signInError } = await signIn(email, password);
+    const { error: signInError } = await signIn(trimmedEmail, password);
 
     if (signInError) {
       if (signInError.message.includes('Invalid login credentials')) {
@@ -46,7 +65,7 @@ export const LoginView: React.FC = () => {
         </div>
         <p className="auth-subtitle">Welcome back</p>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} noValidate className="auth-form">
           <div className="input-group">
             <label htmlFor="email">Email</label>
             <div className="input-wrapper beam-interactive">
