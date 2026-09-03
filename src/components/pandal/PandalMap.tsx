@@ -1,15 +1,21 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useStore } from '../../lib/store';
 import L from 'leaflet';
-import { Card, Button } from '../ui';
-import { Check, MapPin } from 'lucide-react';
+import {
+  Search,
+  SlidersHorizontal,
+  X,
+  MapPin,
+  Navigation,
+  Sparkles,
+  Vote,
+  TrendingUp
+} from 'lucide-react';
 
 export const PandalMap: React.FC = () => {
   const {
     pandals,
-    selectedZone,
     setSelectedPandal,
-    toggleVisit,
     selectedPandal,
     theme
   } = useStore();
@@ -18,10 +24,69 @@ export const PandalMap: React.FC = () => {
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<{ [key: string]: L.Marker }>({});
 
-  const filteredPandals = pandals.filter(p =>
-    selectedZone === 'all' || p.zone === selectedZone
-  );
+  const [mapSearch, setMapSearch] = useState('');
+  const mapSearchInputRef = useRef<HTMLInputElement>(null);
 
+  // Dedicated Slide-Over Filter Drawer State
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const [selectedZone, setSelectedZone] = useState<string>('all');
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
+  const [selectedHeritage, setSelectedHeritage] = useState<string>('all');
+  const [selectedVisitedFilter, setSelectedVisitedFilter] = useState<'all' | 'unvisited' | 'visited'>('all');
+  const [selectedSort, setSelectedSort] = useState<'rating' | 'ratingCount' | 'name'>('rating');
+
+  const activeFiltersCount =
+    (selectedZone !== 'all' ? 1 : 0) +
+    (selectedDistrict !== 'all' ? 1 : 0) +
+    (selectedHeritage !== 'all' ? 1 : 0) +
+    (selectedVisitedFilter !== 'all' ? 1 : 0) +
+    (selectedSort !== 'rating' ? 1 : 0);
+
+  // Filter & Search Logic
+  const filteredPandals = useMemo(() => {
+    return pandals.filter((p) => {
+      // 1. Search Query
+      const q = mapSearch.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        p.address.toLowerCase().includes(q) ||
+        p.zone.toLowerCase().includes(q);
+      if (!matchesSearch) return false;
+
+      // 2. Zone Filter
+      if (selectedZone !== 'all' && p.zone !== selectedZone) return false;
+
+      // 3. District Filter
+      if (selectedDistrict !== 'all') {
+        const addr = p.address.toLowerCase();
+        if (selectedDistrict === 'kolkata' && !addr.includes('kolkata')) return false;
+        if (selectedDistrict === 'howrah' && !addr.includes('howrah') && p.zone !== 'Howrah') return false;
+        if (selectedDistrict === 'saltlake' && !addr.includes('salt lake') && !addr.includes('bidhannagar') && !p.zone.includes('Salt Lake')) return false;
+        if (selectedDistrict === 'north24' && !addr.includes('north 24') && !addr.includes('dum dum') && !addr.includes('barasat')) return false;
+      }
+
+      // 4. Heritage Filter
+      if (selectedHeritage === 'heritage_century') {
+        if (!p.founded_year || (2026 - p.founded_year) < 100) return false;
+      } else if (selectedHeritage === 'heritage_traditional') {
+        if (!p.historical_significance && !p.heritage_status) return false;
+      }
+
+      // 5. Visited Filter
+      if (selectedVisitedFilter === 'visited' && !p.userVisited) return false;
+      if (selectedVisitedFilter === 'unvisited' && p.userVisited) return false;
+
+      return true;
+    }).sort((a, b) => {
+      if (selectedSort === 'rating') return b.avgRating - a.avgRating;
+      if (selectedSort === 'ratingCount') return b.ratingCount - a.ratingCount;
+      if (selectedSort === 'name') return a.name.localeCompare(b.name);
+      return 0;
+    });
+  }, [pandals, mapSearch, selectedZone, selectedDistrict, selectedHeritage, selectedVisitedFilter, selectedSort]);
+
+  // Initialize Map and Render Custom Markers
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
@@ -57,7 +122,7 @@ export const PandalMap: React.FC = () => {
         html: `
           <div class="map-marker-pin ${isSelected ? 'marker-active' : ''} ${isVisited ? 'marker-visited' : ''}" title="${pandal.name}">
             <span class="marker-star">★</span>
-            <span class="marker-rating">${pandal.avgRating}</span>
+            <span class="marker-rating">${pandal.avgRating.toFixed(1)}</span>
           </div>
         `,
         iconSize: [46, 28],
@@ -77,62 +142,372 @@ export const PandalMap: React.FC = () => {
       const bounds = L.latLngBounds(filteredPandals.map(p => [p.latitude, p.longitude]));
       map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
     }
-  }, [filteredPandals.length, selectedZone, selectedPandal?.id, theme]);
+  }, [filteredPandals, selectedPandal?.id, theme]);
 
   return (
-    <div className="pandal-map-wrapper">
-      <div ref={mapContainerRef} className="leaflet-map-canvas" />
-
-      {/* Floating Info Drawer */}
-      <Card variant="default" padding="sm" rounded="2xl" className="map-bottom-drawer">
-        <div className="map-drawer-header">
-          <span className="drawer-title">
-            <MapPin size={14} className="text-red" />
-            <span>Pandals on Map ({filteredPandals.length})</span>
-          </span>
-          <span className="drawer-hint">Click pin to view theme & rate</span>
+    <div className="pandal-map-page">
+      {/* Top Search Bar & Filter Drawer Button Row */}
+      <div className="map-search-filter-row">
+        {/* Search Bar */}
+        <div className="map-search-full-input-wrap beam-interactive">
+          <Search size={16} className="map-search-icon-muted" />
+          <input
+            ref={mapSearchInputRef}
+            type="text"
+            className="map-search-input"
+            placeholder="Search pandals on map..."
+            value={mapSearch}
+            onChange={(e) => setMapSearch(e.target.value)}
+          />
+          {mapSearch && (
+            <button
+              type="button"
+              className="map-search-clear-btn"
+              onClick={() => {
+                setMapSearch('');
+                mapSearchInputRef.current?.focus();
+              }}
+              title="Clear search"
+              aria-label="Clear search"
+            >
+              <X size={15} />
+            </button>
+          )}
         </div>
 
-        <div className="map-drawer-scroll">
-          {filteredPandals.map(pandal => (
-            <Card
-              key={pandal.id}
-              variant="interactive"
-              padding="sm"
-              rounded="lg"
-              className={`map-card-item ${selectedPandal?.id === pandal.id ? 'active' : ''}`}
-              onClick={() => setSelectedPandal(pandal)}
-            >
-              <img src={pandal.image_url} alt={pandal.name} className="map-card-thumb" />
-              <div className="map-card-details">
-                <h4 className="map-card-name">{pandal.name}</h4>
-                <div className="map-card-meta">
-                  <span className="map-card-rating">★ {pandal.avgRating}</span>
-                  <span className="map-card-zone">{pandal.zone}</span>
+        {/* Filter Drawer Trigger Button */}
+        <button
+          type="button"
+          className={`map-filter-trigger-btn beam-interactive ${activeFiltersCount > 0 ? 'is-filtered' : ''}`}
+          onClick={() => setIsFilterDrawerOpen(true)}
+          title="Filter pandals by Zone, District & Heritage"
+          aria-label="Open filter drawer"
+        >
+          <SlidersHorizontal size={16} />
+          {activeFiltersCount > 0 && (
+            <span className="filter-active-count">{activeFiltersCount}</span>
+          )}
+        </button>
+      </div>
+
+      {/* Map Canvas Wrapper */}
+      <div className="pandal-map-wrapper">
+        <div ref={mapContainerRef} className="leaflet-map-canvas" />
+
+        {/* Dynamic Match Count Indicator Pill */}
+        <div className="map-floating-counter-badge">
+          <span className="counter-dot"></span>
+          <span>{filteredPandals.length} Pandals on Map</span>
+        </div>
+      </div>
+
+      {/* =======================================================================
+          SLIDE-OVER FILTER DRAWER / FILTER PAGE (Matching Vote Filter Page)
+          ======================================================================= */}
+      {isFilterDrawerOpen && (
+        <div className="filter-drawer-overlay" onClick={() => setIsFilterDrawerOpen(false)}>
+          <div className="filter-drawer-panel" onClick={(e) => e.stopPropagation()}>
+            {/* Drawer Header */}
+            <div className="drawer-header">
+              <div className="drawer-title-group">
+                <SlidersHorizontal size={18} className="text-red" />
+                <h3 className="drawer-title">Filter Map Pandals</h3>
+                {activeFiltersCount > 0 && (
+                  <span className="drawer-active-pill">{activeFiltersCount} Active</span>
+                )}
+              </div>
+              <button
+                type="button"
+                className="drawer-close-btn"
+                onClick={() => setIsFilterDrawerOpen(false)}
+                title="Close filters"
+                aria-label="Close filters"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Drawer Body - Category Wise Filter Groups */}
+            <div className="drawer-body">
+              {/* 1. Zone / Area */}
+              <div className="filter-group">
+                <div className="filter-group-header">
+                  <MapPin size={14} className="text-gold" />
+                  <span className="filter-group-title">Zone / Area</span>
+                </div>
+                <div className="filter-pills-wrap">
+                  {[
+                    { id: 'all', label: 'All Zones' },
+                    { id: 'North Kolkata', label: 'North Kolkata' },
+                    { id: 'South Kolkata', label: 'South Kolkata' },
+                    { id: 'Central Kolkata', label: 'Central Kolkata' },
+                    { id: 'Salt Lake & East Kolkata', label: 'Salt Lake & East' },
+                    { id: 'Howrah', label: 'Howrah' }
+                  ].map((z) => (
+                    <button
+                      key={z.id}
+                      type="button"
+                      className={`filter-choice-pill ${selectedZone === z.id ? 'is-selected' : ''}`}
+                      onClick={() => setSelectedZone(z.id)}
+                    >
+                      {z.label}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <Button
-                variant={pandal.userVisited ? 'visited' : 'outline'}
-                size="sm"
-                rounded="full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleVisit(pandal.id);
+
+              {/* 2. City / District */}
+              <div className="filter-group">
+                <div className="filter-group-header">
+                  <Navigation size={14} className="text-red" />
+                  <span className="filter-group-title">City / District</span>
+                </div>
+                <div className="filter-pills-wrap">
+                  {[
+                    { id: 'all', label: 'All Districts' },
+                    { id: 'kolkata', label: 'Kolkata Central' },
+                    { id: 'saltlake', label: 'Bidhannagar / Salt Lake' },
+                    { id: 'howrah', label: 'Howrah District' },
+                    { id: 'north24', label: 'North 24 Parganas' }
+                  ].map((d) => (
+                    <button
+                      key={d.id}
+                      type="button"
+                      className={`filter-choice-pill ${selectedDistrict === d.id ? 'is-selected' : ''}`}
+                      onClick={() => setSelectedDistrict(d.id)}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Heritage & Style */}
+              <div className="filter-group">
+                <div className="filter-group-header">
+                  <Sparkles size={14} className="text-gold" />
+                  <span className="filter-group-title">Heritage & Legacy</span>
+                </div>
+                <div className="filter-pills-wrap">
+                  {[
+                    { id: 'all', label: 'All Heritage' },
+                    { id: 'heritage_century', label: 'Century Heritage (100+ Yrs)' },
+                    { id: 'heritage_traditional', label: 'Iconic & Traditional' }
+                  ].map((h) => (
+                    <button
+                      key={h.id}
+                      type="button"
+                      className={`filter-choice-pill ${selectedHeritage === h.id ? 'is-selected' : ''}`}
+                      onClick={() => setSelectedHeritage(h.id)}
+                    >
+                      {h.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 4. Visited Status */}
+              <div className="filter-group">
+                <div className="filter-group-header">
+                  <Vote size={14} className="text-red" />
+                  <span className="filter-group-title">Passport Status</span>
+                </div>
+                <div className="filter-pills-wrap">
+                  {[
+                    { id: 'all', label: 'All Pandals' },
+                    { id: 'unvisited', label: 'Unvisited' },
+                    { id: 'visited', label: 'Already Visited' }
+                  ].map((v) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      className={`filter-choice-pill ${selectedVisitedFilter === v.id ? 'is-selected' : ''}`}
+                      onClick={() => setSelectedVisitedFilter(v.id as any)}
+                    >
+                      {v.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5. Sort Order */}
+              <div className="filter-group">
+                <div className="filter-group-header">
+                  <TrendingUp size={14} className="text-gold" />
+                  <span className="filter-group-title">Sort Criteria</span>
+                </div>
+                <div className="filter-pills-wrap">
+                  {[
+                    { id: 'rating', label: 'Highest Rated ★' },
+                    { id: 'ratingCount', label: 'Most Ratings 🗳️' },
+                    { id: 'name', label: 'Alphabetical A-Z 🔤' }
+                  ].map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className={`filter-choice-pill ${selectedSort === s.id ? 'is-selected' : ''}`}
+                      onClick={() => setSelectedSort(s.id as any)}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Drawer Footer */}
+            <div className="drawer-footer">
+              <button
+                type="button"
+                className="drawer-reset-btn"
+                onClick={() => {
+                  setSelectedZone('all');
+                  setSelectedDistrict('all');
+                  setSelectedHeritage('all');
+                  setSelectedVisitedFilter('all');
+                  setSelectedSort('rating');
                 }}
               >
-                {pandal.userVisited ? <Check size={12} strokeWidth={3} /> : 'Visit'}
-              </Button>
-            </Card>
-          ))}
+                Reset All
+              </button>
+
+              <button
+                type="button"
+                className="drawer-apply-btn"
+                onClick={() => setIsFilterDrawerOpen(false)}
+              >
+                Apply Filters ({filteredPandals.length})
+              </button>
+            </div>
+          </div>
         </div>
-      </Card>
+      )}
 
       <style>{`
+        .pandal-map-page {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          width: 100%;
+        }
+
+        /* Search & Filter Row */
+        .map-search-filter-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+        }
+
+        .map-search-full-input-wrap {
+          display: flex;
+          align-items: center;
+          flex: 1;
+          height: 42px;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-full);
+          padding: 0 14px;
+          gap: 8px;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .map-search-full-input-wrap:focus-within {
+          border-color: var(--border-focus);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .map-search-icon-muted {
+          color: var(--text-muted);
+          flex-shrink: 0;
+        }
+
+        .map-search-input {
+          flex: 1;
+          background: transparent;
+          border: none;
+          outline: none;
+          color: var(--text-primary);
+          font-size: 13.5px;
+          font-weight: 500;
+          min-width: 0;
+        }
+        .map-search-input::placeholder {
+          color: var(--text-muted);
+        }
+
+        .map-search-clear-btn {
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4px;
+          border-radius: var(--radius-full);
+          transition: all 0.15s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .map-search-clear-btn:hover {
+          color: var(--text-primary);
+          background: var(--border);
+        }
+        .map-search-clear-btn:active {
+          transform: scale(0.9);
+        }
+
+        .map-filter-trigger-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 42px;
+          height: 42px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          color: var(--text-primary);
+          cursor: pointer;
+          position: relative;
+          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .map-filter-trigger-btn:hover {
+          background: var(--bg-card-subtle);
+          border-color: var(--border-focus);
+          transform: scale(1.05);
+        }
+        .map-filter-trigger-btn:active {
+          transform: scale(0.92);
+        }
+        .map-filter-trigger-btn.is-filtered {
+          border-color: var(--kirti-red);
+          color: var(--kirti-red);
+        }
+
+        .filter-active-count {
+          position: absolute;
+          top: -3px;
+          right: -3px;
+          width: 17px;
+          height: 17px;
+          border-radius: 50%;
+          background: var(--kirti-red);
+          color: #fff;
+          font-size: 10px;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        /* Map Canvas */
         .pandal-map-wrapper {
           position: relative;
           width: 100%;
-          height: calc(100vh - 220px);
-          min-height: 540px;
+          height: calc(100vh - 200px);
+          min-height: 520px;
           border-radius: var(--radius-2xl);
           overflow: hidden;
           border: 1px solid var(--border);
@@ -140,8 +515,8 @@ export const PandalMap: React.FC = () => {
         }
         @media (max-width: 768px) {
           .pandal-map-wrapper {
-            height: calc(100vh - 180px);
-            min-height: 440px;
+            height: calc(100vh - 175px);
+            min-height: 420px;
           }
         }
         .leaflet-map-canvas {
@@ -149,6 +524,39 @@ export const PandalMap: React.FC = () => {
           height: 100%;
           background: #e5e3df;
         }
+
+        .map-floating-counter-badge {
+          position: absolute;
+          top: 14px;
+          left: 14px;
+          z-index: 800;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 14px;
+          background: var(--bg-header);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-full);
+          font-size: 12px;
+          font-weight: 700;
+          color: var(--text-primary);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+          pointer-events: none;
+        }
+        .counter-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: var(--kirti-red);
+          animation: mapDotPulse 2s infinite ease-in-out;
+        }
+        @keyframes mapDotPulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
         .map-marker-pin {
           display: flex;
           align-items: center;
@@ -183,100 +591,196 @@ export const PandalMap: React.FC = () => {
           color: var(--kirti-gold);
           font-size: 10px;
         }
-        .map-bottom-drawer {
-          position: absolute;
-          bottom: 18px;
-          left: 18px;
-          right: 18px;
-          z-index: 800;
-          box-shadow: var(--shadow-float);
+
+        /* Slide-Over Filter Drawer */
+        .filter-drawer-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.65);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          z-index: 1100;
+          display: flex;
+          justify-content: flex-end;
+          animation: drawerFadeIn 0.24s ease;
+        }
+        .filter-drawer-panel {
+          width: 100%;
+          max-width: 420px;
+          height: 100%;
+          background: var(--bg-card);
+          border-left: 1px solid var(--border);
+          box-shadow: -10px 0 30px rgba(0, 0, 0, 0.4);
           display: flex;
           flex-direction: column;
-          gap: 10px;
-          backdrop-filter: blur(12px);
-          background: var(--bg-header) !important;
+          animation: drawerSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        @media (max-width: 768px) {
-          .map-bottom-drawer {
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-            padding: 8px 10px;
-            gap: 6px;
-          }
-          .drawer-hint {
-            display: none;
-          }
+        @keyframes drawerFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
-        .map-drawer-header {
+        @keyframes drawerSlideIn {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
+
+        .drawer-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 0 4px;
+          padding: 20px 22px;
+          border-bottom: 1px solid var(--border);
+        }
+        .drawer-title-group {
+          display: flex;
+          align-items: center;
+          gap: 10px;
         }
         .drawer-title {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          font-weight: 700;
+          font-size: 18px;
+          font-weight: 800;
           color: var(--text-primary);
+          margin: 0;
         }
-        .text-red {
-          color: var(--kirti-red);
-        }
-        .drawer-hint {
+        .drawer-active-pill {
           font-size: 11px;
-          color: var(--text-muted);
+          font-weight: 700;
+          background: rgba(180, 35, 42, 0.12);
+          color: var(--kirti-red);
+          padding: 2px 8px;
+          border-radius: var(--radius-full);
+          border: 1px solid rgba(180, 35, 42, 0.2);
         }
-        .map-drawer-scroll {
+        .drawer-close-btn {
+          width: 34px;
+          height: 34px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card-subtle);
+          border: 1px solid var(--border);
+          color: var(--text-secondary);
           display: flex;
           align-items: center;
-          gap: 10px;
-          overflow-x: auto;
-          scrollbar-width: thin;
-          padding-bottom: 2px;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
         }
-        .map-card-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          min-width: 270px;
-          flex-shrink: 0;
-        }
-        .map-card-item.active {
+        .drawer-close-btn:hover {
+          color: var(--text-primary);
           border-color: var(--border-focus);
         }
-        .map-card-thumb {
-          width: 44px;
-          height: 44px;
-          border-radius: var(--radius-md);
-          object-fit: cover;
+        .drawer-close-btn:active {
+          transform: scale(0.92);
         }
-        .map-card-details {
+
+        .drawer-body {
+          flex: 1;
+          overflow-y: auto;
+          padding: 20px 22px;
           display: flex;
           flex-direction: column;
-          flex: 1;
-          overflow: hidden;
+          gap: 22px;
         }
-        .map-card-name {
-          font-size: 13px;
-          font-weight: 700;
-          color: var(--text-primary);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+
+        .filter-group {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
         }
-        .map-card-meta {
+        .filter-group-header {
           display: flex;
           align-items: center;
-          gap: 6px;
-          font-size: 11px;
-          color: var(--text-muted);
+          gap: 8px;
         }
-        .map-card-rating {
-          color: var(--kirti-gold);
+        .filter-group-title {
+          font-size: 13px;
           font-weight: 700;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .filter-pills-wrap {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .filter-choice-pill {
+          padding: 7px 13px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card-subtle);
+          border: 1px solid var(--border);
+          color: var(--text-secondary);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.18s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .filter-choice-pill:hover {
+          border-color: var(--border-focus);
+          color: var(--text-primary);
+        }
+        .filter-choice-pill.is-selected {
+          background: var(--text-primary);
+          color: var(--bg-card);
+          border-color: var(--text-primary);
+          font-weight: 700;
+        }
+
+        .drawer-footer {
+          padding: 16px 22px;
+          border-top: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: var(--bg-card);
+        }
+        .drawer-reset-btn {
+          flex: 1;
+          height: 44px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card-subtle);
+          border: 1px solid var(--border);
+          color: var(--text-secondary);
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.18s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .drawer-reset-btn:hover {
+          color: var(--text-primary);
+          border-color: var(--border-focus);
+        }
+        .drawer-reset-btn:active {
+          transform: scale(0.97);
+        }
+
+        .drawer-apply-btn {
+          flex: 2;
+          height: 44px;
+          border-radius: var(--radius-full);
+          background: var(--kirti-red);
+          border: none;
+          color: #fff;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 4px 14px rgba(180, 35, 42, 0.4);
+          transition: all 0.18s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .drawer-apply-btn:hover {
+          filter: brightness(1.1);
+          transform: translateY(-1px);
+        }
+        .drawer-apply-btn:active {
+          transform: translateY(0) scale(0.97);
         }
       `}</style>
     </div>

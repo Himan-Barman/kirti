@@ -14,7 +14,8 @@ import {
   Vote,
   TrendingUp,
   ChevronDown,
-  Check
+  Check,
+  RotateCw
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -27,7 +28,9 @@ export const Navbar: React.FC = () => {
     pandals,
     pendingIncomingRequests,
     theme,
-    toggleTheme
+    toggleTheme,
+    isLocationRefreshing,
+    refreshUserLocation
   } = useStore();
   const { user } = useAuth();
 
@@ -139,9 +142,24 @@ export const Navbar: React.FC = () => {
                 </div>
               )}
 
-              {/* Mobile Search Toggle Button (Hidden on mobile when on Vote tab) */}
+              {/* Mobile Nearby Refresh Button (Shown on mobile when on Nearby tab) */}
+              {activeTab === 'nearby' && (
+                <button
+                  type="button"
+                  className="mobile-nearby-refresh-btn beam-interactive"
+                  onClick={refreshUserLocation}
+                  disabled={isLocationRefreshing}
+                  title="Refresh GPS Coordinates"
+                  aria-label="Refresh GPS Location"
+                >
+                  <RotateCw size={14} className={`text-red ${isLocationRefreshing ? 'spin-anim' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+              )}
+
+              {/* Mobile Search Toggle Button (Hidden on mobile when on Vote, Map or Nearby tab) */}
               <button
-                className={`mobile-search-toggle ${activeTab === 'vote' ? 'mobile-hide-on-vote' : ''}`}
+                className={`mobile-search-toggle ${activeTab === 'vote' || activeTab === 'map' || activeTab === 'nearby' ? 'mobile-hide-on-vote' : ''}`}
                 onClick={() => setIsMobileSearchOpen(true)}
                 title="Search"
                 aria-label="Open search bar"
@@ -199,7 +217,7 @@ export const Navbar: React.FC = () => {
 
               {/* Theme Toggle Button */}
               <button
-                className={`theme-toggle-btn ${activeTab === 'vote' ? 'mobile-hide-on-vote' : ''}`}
+                className={`theme-toggle-btn ${activeTab === 'vote' || activeTab === 'map' || activeTab === 'nearby' ? 'mobile-hide-on-vote' : ''}`}
                 onClick={toggleTheme}
                 title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 aria-label="Toggle theme"
@@ -214,7 +232,7 @@ export const Navbar: React.FC = () => {
               {/* User Profile / Login */}
               {user ? (
                 <button
-                  className={`profile-pill ${activeTab === 'profile' ? 'active' : ''} ${activeTab === 'vote' ? 'mobile-hide-on-vote' : ''}`}
+                  className={`profile-pill ${activeTab === 'profile' ? 'active' : ''} ${activeTab === 'vote' || activeTab === 'map' || activeTab === 'nearby' ? 'mobile-hide-on-vote' : ''}`}
                   onClick={() => setActiveTab('profile')}
                   title="My Puja Passport"
                 >
@@ -226,7 +244,7 @@ export const Navbar: React.FC = () => {
                 </button>
               ) : (
                 <button
-                  className={`auth-submit-btn ${activeTab === 'vote' ? 'mobile-hide-on-vote' : ''}`}
+                  className={`auth-submit-btn ${activeTab === 'vote' || activeTab === 'map' || activeTab === 'nearby' ? 'mobile-hide-on-vote' : ''}`}
                   style={{ padding: '6px 14px', margin: 0, height: '36px', width: 'auto', fontSize: '14px', borderRadius: '20px' }}
                   onClick={() => setActiveTab('signup')}
                 >
@@ -509,11 +527,54 @@ export const Navbar: React.FC = () => {
           background: var(--kirti-red);
         }
 
-        /* Mobile Vote View Dropdown */
+        /* Mobile Nearby Refresh Button (Mobile-only: hidden on desktop/laptop) */
+        .mobile-nearby-refresh-btn {
+          position: relative;
+          display: none;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 14px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          color: var(--text-primary);
+          font-size: 12.5px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .mobile-nearby-refresh-btn:hover {
+          background: var(--bg-card-subtle);
+          border-color: var(--border-focus);
+        }
+        .mobile-nearby-refresh-btn:active {
+          transform: scale(0.96);
+        }
+        @media (max-width: 768px) {
+          .mobile-nearby-refresh-btn {
+            display: inline-flex;
+          }
+        }
+        .spin-anim {
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        /* Mobile Vote View Dropdown (Mobile-only: hidden on desktop/laptop) */
         .mobile-vote-view-dropdown-container {
           position: relative;
-          display: flex;
+          display: none;
           align-items: center;
+        }
+        @media (max-width: 768px) {
+          .mobile-vote-view-dropdown-container {
+            display: flex;
+          }
         }
         .mobile-vote-view-trigger-btn {
           display: inline-flex;

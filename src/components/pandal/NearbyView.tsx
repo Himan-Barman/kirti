@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '../../lib/store';
 import { PandalCard } from './PandalCard';
 import { Tabs, Button } from '../ui';
@@ -18,51 +18,17 @@ import {
   formatDistance,
   estimateWalkingTime
 } from '../../lib/geo';
-import type { GeoCoordinates } from '../../lib/geo';
 
 export const NearbyView: React.FC = () => {
-  const { pandals } = useStore();
+  const {
+    pandals,
+    userLocation,
+    locationStatus,
+    isLocationRefreshing,
+    refreshUserLocation
+  } = useStore();
 
-  const [userLocation, setUserLocation] = useState<GeoCoordinates | null>(null);
-  const [locationStatus, setLocationStatus] = useState<
-    'idle' | 'requesting' | 'granted' | 'denied' | 'unsupported'
-  >('idle');
   const [radiusFilter, setRadiusFilter] = useState<string>('5');
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Request user location on mount or user click
-  const requestLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationStatus('unsupported');
-      setUserLocation(DEFAULT_KOLKATA_CENTER);
-      return;
-    }
-
-    setLocationStatus('requesting');
-    setIsRefreshing(true);
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLocation({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude
-        });
-        setLocationStatus('granted');
-        setIsRefreshing(false);
-      },
-      (err) => {
-        console.warn('Geolocation denied or error:', err.message);
-        setLocationStatus('denied');
-        setUserLocation(DEFAULT_KOLKATA_CENTER);
-        setIsRefreshing(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
-  };
-
-  useEffect(() => {
-    requestLocation();
-  }, []);
 
   // Compute distances for all pandals relative to userLocation or DEFAULT_KOLKATA_CENTER
   const activeCoord = userLocation || DEFAULT_KOLKATA_CENTER;
@@ -98,21 +64,7 @@ export const NearbyView: React.FC = () => {
 
   return (
     <div className="nearby-view-container">
-      {/* Header Eyebrow & Title */}
-      <div className="nearby-header">
-        <div className="nearby-eyebrow-pill">
-          <span className="live-radar-dot"></span>
-          <Navigation size={12} className="text-red" />
-          <span>LOCAL AREA RADAR</span>
-        </div>
-
-        <div className="nearby-title-row">
-          <h1 className="nearby-title">Nearby Durga Puja Pandals</h1>
-          <span className="nearby-bengali">কাছের প্যান্ডেল</span>
-        </div>
-      </div>
-
-      {/* Live GPS Radar Card */}
+      {/* Live GPS Radar Card (Page heading removed as requested) */}
       <div className="gps-radar-card beam-interactive">
         <div className="radar-left">
           <div className="radar-pulse-box">
@@ -152,11 +104,11 @@ export const NearbyView: React.FC = () => {
 
         <button
           className="gps-refresh-btn beam-interactive"
-          onClick={requestLocation}
-          disabled={isRefreshing}
+          onClick={refreshUserLocation}
+          disabled={isLocationRefreshing}
           title="Refresh GPS Coordinates"
         >
-          <RotateCw size={15} className={isRefreshing ? 'spin-anim' : ''} />
+          <RotateCw size={15} className={isLocationRefreshing ? 'spin-anim' : ''} />
           <span>{locationStatus === 'granted' ? 'Refresh GPS' : 'Enable Location'}</span>
         </button>
       </div>

@@ -11,6 +11,8 @@ import type {
 import type { ToastData } from '../components/ui/Toast';
 import { supabase } from './supabase';
 import { useAuth } from './auth';
+import { DEFAULT_KOLKATA_CENTER } from './geo';
+import type { GeoCoordinates } from './geo';
 
 interface FriendStats {
   visitedCount: number;
@@ -42,6 +44,10 @@ interface StoreContextType {
   toastMessage: string | null; // Keeping for backward compatibility temporarily if needed
   theme: 'light' | 'dark';
 
+  userLocation: GeoCoordinates | null;
+  locationStatus: 'idle' | 'requesting' | 'granted' | 'denied' | 'unsupported';
+  isLocationRefreshing: boolean;
+
   setActiveTab: (tab: 'discover' | 'map' | 'nearby' | 'friends' | 'vote' | 'activity' | 'profile' | 'login' | 'signup' | 'forgot-password' | 'reset-password') => void;
   setVoteActiveView: (view: 'cast_vote' | 'pandals_ranking') => void;
   setSelectedPandal: (pandal: PandalWithStats | null) => void;
@@ -52,6 +58,7 @@ interface StoreContextType {
   showToast: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
   removeToast: (id: string) => void;
   toggleTheme: () => void;
+  refreshUserLocation: () => void;
 
   toggleVisit: (pandalId: string) => void;
   submitRating: (
@@ -138,6 +145,47 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [sortBy, setSortBy] = useState<'rating' | 'visits' | 'friends' | 'name'>('rating');
   const [toasts, setToasts] = useState<ToastData[]>([]);
   const [toastMessage] = useState<string | null>(null);
+
+  // Live GPS & Location State
+  const [userLocation, setUserLocation] = useState<GeoCoordinates | null>(null);
+  const [locationStatus, setLocationStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied' | 'unsupported'>('idle');
+  const [isLocationRefreshing, setIsLocationRefreshing] = useState(false);
+
+  const refreshUserLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationStatus('unsupported');
+      setUserLocation(DEFAULT_KOLKATA_CENTER);
+      showToast('Geolocation is not supported by your browser', 'warning');
+      return;
+    }
+
+    setLocationStatus('requesting');
+    setIsLocationRefreshing(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
+        });
+        setLocationStatus('granted');
+        setIsLocationRefreshing(false);
+        showToast('Live GPS location updated', 'success');
+      },
+      (err) => {
+        console.warn('Geolocation denied or error:', err.message);
+        setLocationStatus('denied');
+        setUserLocation(DEFAULT_KOLKATA_CENTER);
+        setIsLocationRefreshing(false);
+        showToast('Location permission denied. Using Kolkata Central.', 'info');
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
+
+  useEffect(() => {
+    refreshUserLocation();
+  }, []);
 
   // Fetch data from Supabase on mount
   useEffect(() => {
@@ -365,6 +413,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         toastMessage,
         theme,
 
+        userLocation,
+        locationStatus,
+        isLocationRefreshing,
+
         setActiveTab,
         setVoteActiveView,
         setSelectedPandal: (pandal) => setSelectedPandalId(pandal?.id || null),
@@ -375,6 +427,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         showToast,
         removeToast,
         toggleTheme,
+        refreshUserLocation,
 
         toggleVisit,
         submitRating,

@@ -3,7 +3,6 @@ import { useStore } from './lib/store';
 import { Navbar } from './components/navigation/Navbar';
 import { MobileNav } from './components/navigation/MobileNav';
 import { Footer } from './components/navigation/Footer';
-import { PandalFilters } from './components/pandal/PandalFilters';
 import { PandalDetailModal } from './components/pandal/PandalDetailModal';
 import { PandalMap } from './components/pandal/PandalMap';
 import { FriendJourneyCompare } from './components/friends/FriendJourneyCompare';
@@ -162,7 +161,6 @@ export const AppContent: React.FC = () => {
             {/* MAP TAB */}
             {activeTab === 'map' && (
               <div className="map-view-wrapper">
-                <PandalFilters />
                 <PandalMap />
               </div>
             )}
