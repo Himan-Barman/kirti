@@ -338,19 +338,11 @@ export const NearbyView: React.FC = () => {
 
       <style>{`
         .nearby-view-container {
-          max-width: 900px;
-          margin: 0 auto;
-          padding: 8px 16px 80px 16px;
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 1.5rem;
+          width: 100%;
           animation: nearbyFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @media (max-width: 768px) {
-          .nearby-view-container {
-            padding: 8px 16px 90px 16px;
-            gap: 14px;
-          }
         }
 
         /* Filter Header Row */
@@ -442,16 +434,17 @@ export const NearbyView: React.FC = () => {
         .nearby-pandal-bar {
           display: flex;
           align-items: center;
-          padding: 10px 14px;
+          padding: 8px 14px 8px 14px;
           gap: 14px;
           background: var(--bg-card);
           border: 1px solid var(--border);
-          border-radius: var(--radius-xl);
-          min-height: 78px;
+          border-radius: var(--radius-lg);
+          min-height: 74px;
           cursor: pointer;
           box-sizing: border-box;
           transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
+          width: 100%;
         }
         .nearby-pandal-bar:hover {
           background: var(--bg-card-subtle);
@@ -464,10 +457,10 @@ export const NearbyView: React.FC = () => {
         }
 
         .nearby-bar-thumb {
-          width: 60px;
-          height: 60px;
-          min-width: 60px;
-          max-width: 60px;
+          width: 58px;
+          height: 58px;
+          min-width: 58px;
+          max-width: 58px;
           border-radius: 10px;
           object-fit: cover;
           flex-shrink: 0;
