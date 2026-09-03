@@ -11,8 +11,7 @@ import {
   ArrowRight,
   Flame,
   Award,
-  CheckCircle2,
-  Sparkles
+  CheckCircle2
 } from 'lucide-react';
 
 const CURATED_TABS = [
@@ -82,12 +81,8 @@ export const LandingShowcase: React.FC = () => {
           {/* Micro Starlight Festive Lattice Shimmer */}
           <div className="hero-starlight-grid" aria-hidden="true"></div>
 
-          {/* Majestic Glowing Bengali Typography Watermark */}
-          <div className="hero-bengali-watermark-wrap" aria-hidden="true">
-            <span className="hero-bengali-text">কীর্তি</span>
-          </div>
-
           <div className="hero-content">
+            {/* Centered Upper Red Badge */}
             <div className="hero-badge-wrap">
               <Badge variant="outline" size="md" rounded="full" className="hero-tag-badge">
                 <span className="hero-dot"></span>
@@ -95,16 +90,20 @@ export const LandingShowcase: React.FC = () => {
               </Badge>
             </div>
 
-            <h1 className="hero-headline">
-              Discover pandals.<br />
-              <span className="hero-gold-shimmer">Rate authentic craft.</span><br />
-              Track where friends go.
-            </h1>
+            {/* Same Row: 3-line Headline & Bengali Kirti Typography */}
+            <div className="hero-headline-row">
+              <h1 className="hero-headline">
+                Discover pandals.<br />
+                <span className="hero-gold-shimmer">Rate authentic craft.</span><br />
+                Track where friends go.
+              </h1>
 
-            <p className="hero-subtext">
-              A minimal, distraction-free discovery platform for Kolkata's grandest festival. Record 5-star ratings, compare exploration leaderboards, and map your pandal journey.
-            </p>
+              <div className="hero-bengali-side-block" aria-hidden="true">
+                <span className="hero-bengali-side-text">কীর্তি</span>
+              </div>
+            </div>
 
+            {/* Centered Explore Pandals & Interactive Map Buttons */}
             <div className="hero-actions">
               <Button
                 variant="primary"
@@ -128,22 +127,6 @@ export const LandingShowcase: React.FC = () => {
               >
                 Interactive Map
               </Button>
-            </div>
-
-            {/* Micro Stats Strip */}
-            <div className="hero-meta-strip">
-              <div className="meta-pill">
-                <Sparkles size={13} className="meta-gold" />
-                <span>16 Iconic Kolkata Pandals</span>
-              </div>
-              <div className="meta-pill">
-                <CheckCircle2 size={13} className="meta-red" />
-                <span>1-Tap Visited Passport</span>
-              </div>
-              <div className="meta-pill">
-                <Users size={13} className="meta-muted" />
-                <span>Live Friend Leaderboard</span>
-              </div>
             </div>
           </div>
         </div>
@@ -191,17 +174,17 @@ export const LandingShowcase: React.FC = () => {
           3. CURATED PANDAL DISCOVERY SHOWCASE SECTION (SHOW ONLY 3 CARDS)
           ========================================================================= */}
       <section id="curated-showcase" className="showcase-section">
-        <div className="showcase-section-header">
-          <div className="section-head-block">
-            <div className="section-eyebrow">
-              <Compass size={13} className="eyebrow-icon-red" />
-              <span>CURATED DIRECTORY</span>
-            </div>
-            <div className="section-title-wrap">
-              <h2 className="section-main-title">Iconic Kolkata Pandals</h2>
-              <p className="section-main-subtitle">Selected masterworks categorized by zone and rated by the community</p>
-            </div>
+        {/* Centered Red Eyebrow Pill */}
+        <div className="section-eyebrow-center-wrap">
+          <div className="section-eyebrow">
+            <Compass size={13} className="eyebrow-icon-red" />
+            <span>CURATED DIRECTORY</span>
           </div>
+        </div>
+
+        {/* Left Heading & Right Filters in Same Row */}
+        <div className="showcase-section-header">
+          <h2 className="section-main-title">Iconic Kolkata Pandals</h2>
 
           {/* Curated Category Switcher Tabs */}
           <div className="curated-tabs-holder">
@@ -247,13 +230,13 @@ export const LandingShowcase: React.FC = () => {
         .landing-container {
           display: flex;
           flex-direction: column;
-          gap: 84px;
+          gap: 140px;
           width: 100%;
           box-sizing: border-box;
         }
         @media (max-width: 768px) {
           .landing-container {
-            gap: 48px;
+            gap: 80px;
           }
         }
         .hero-section {
@@ -310,45 +293,18 @@ export const LandingShowcase: React.FC = () => {
           z-index: 0;
           opacity: 0.65;
         }
-        .hero-bengali-watermark-wrap {
-          position: absolute;
-          right: 36px;
-          top: 50%;
-          transform: translateY(-50%);
-          pointer-events: none;
-          user-select: none;
-          z-index: 0;
-        }
-        .hero-bengali-text {
-          font-family: 'Tiro Bangla', serif;
-          font-size: 175px;
-          font-weight: 400;
-          background: linear-gradient(135deg, rgba(251, 191, 36, 0.18) 0%, rgba(225, 29, 72, 0.12) 65%, transparent 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          filter: drop-shadow(0 0 35px rgba(245, 158, 11, 0.14));
-          line-height: 1.2;
-          padding-top: 30px;
-          padding-bottom: 20px;
-          margin-top: -30px;
-          display: block;
-          letter-spacing: 0.02em;
-        }
-        @media (max-width: 900px) {
-          .hero-bengali-watermark-wrap {
-            display: none;
-          }
-        }
         .hero-content {
           position: relative;
           z-index: 2;
-          max-width: 820px;
+          width: 100%;
           display: flex;
           flex-direction: column;
           gap: 18px;
         }
         .hero-badge-wrap {
-          width: fit-content;
+          display: flex;
+          justify-content: center;
+          width: 100%;
         }
         .hero-tag-badge {
           backdrop-filter: blur(12px);
@@ -365,12 +321,24 @@ export const LandingShowcase: React.FC = () => {
           margin-right: 4px;
           box-shadow: 0 0 8px var(--kirti-red);
         }
+
+        .hero-headline-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 32px;
+          width: 100%;
+          margin: 4px 0;
+        }
         .hero-headline {
           font-size: 52px;
           font-weight: 800;
           color: var(--text-primary);
           line-height: 1.08;
           letter-spacing: -0.04em;
+          text-align: left;
+          margin: 0;
+          flex: 1;
         }
         .hero-gold-shimmer {
           background: linear-gradient(135deg, #FFF9EB 15%, #FBBF24 55%, #F87171 100%);
@@ -384,6 +352,31 @@ export const LandingShowcase: React.FC = () => {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           text-shadow: none;
+        }
+
+        .hero-bengali-side-block {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          user-select: none;
+          pointer-events: none;
+          overflow: visible;
+        }
+        .hero-bengali-side-text {
+          font-family: 'Tiro Bangla', serif;
+          font-size: 135px;
+          font-weight: 400;
+          background: linear-gradient(135deg, rgba(251, 191, 36, 0.32) 0%, rgba(225, 29, 72, 0.24) 65%, transparent 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          filter: drop-shadow(0 0 35px rgba(245, 158, 11, 0.18));
+          line-height: 1.45;
+          display: inline-block;
+          letter-spacing: 0.02em;
+          padding: 30px 14px 14px 14px;
+          margin-top: -20px;
+          overflow: visible;
         }
 
         [data-theme="light"] .hero-ambient-glow {
@@ -401,52 +394,55 @@ export const LandingShowcase: React.FC = () => {
             radial-gradient(ellipse 90% 50% at 50% 90%, rgba(159, 18, 57, 0.12) 0%, transparent 80%);
           filter: blur(40px);
         }
-        @media (max-width: 768px) {
+
+        @media (max-width: 900px) {
+          .hero-headline-row {
+            gap: 16px;
+          }
           .hero-headline {
-            font-size: 30px;
-            line-height: 1.15;
+            font-size: 38px;
+            line-height: 1.12;
+          }
+          .hero-bengali-side-text {
+            font-size: 90px;
+            padding-top: 20px;
           }
         }
-        @media (max-width: 420px) {
+        @media (max-width: 650px) {
+          .hero-headline-row {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+          }
           .hero-headline {
-            font-size: 26px;
+            font-size: 28px;
+            text-align: center;
+          }
+          .hero-bengali-side-text {
+            font-size: 64px;
+            padding-top: 15px;
           }
         }
-        .hero-subtext {
-          font-size: 16px;
-          color: var(--text-secondary);
-          line-height: 1.6;
-          max-width: 660px;
-        }
-        @media (max-width: 768px) {
-          .hero-subtext {
-            font-size: 14px;
-          }
-        }
+
         .hero-actions {
           display: flex;
           align-items: center;
-          gap: 12px;
-          margin-top: 4px;
+          justify-content: center;
+          gap: 14px;
+          margin-top: 14px;
           flex-wrap: wrap;
+          width: 100%;
         }
         @media (max-width: 480px) {
           .hero-actions {
             flex-direction: column;
             align-items: stretch;
-            width: 100%;
           }
           .hero-actions > * {
             width: 100%;
             justify-content: center;
           }
-        }
-        .hero-meta-strip {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          margin-top: 8px;
-          flex-wrap: wrap;
         }
         .meta-pill {
           display: flex;
@@ -516,7 +512,12 @@ export const LandingShowcase: React.FC = () => {
         .showcase-section {
           display: flex;
           flex-direction: column;
-          gap: 22px;
+          gap: 16px;
+          width: 100%;
+        }
+        .section-eyebrow-center-wrap {
+          display: flex;
+          justify-content: center;
           width: 100%;
         }
         .showcase-section-header {
@@ -525,21 +526,29 @@ export const LandingShowcase: React.FC = () => {
           justify-content: space-between;
           flex-wrap: wrap;
           gap: 16px;
+          width: 100%;
         }
         .section-head-block {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          align-items: flex-start;
+          text-align: left;
+          gap: 6px;
         }
         .section-eyebrow {
           display: inline-flex;
           align-items: center;
-          gap: 5px;
+          gap: 6px;
           font-size: 11px;
-          font-weight: 800;
+          font-weight: 700;
           letter-spacing: 0.08em;
-          color: var(--kirti-red);
           text-transform: uppercase;
+          padding: 4px 10px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card-subtle);
+          border: 1px solid var(--border);
+          color: var(--kirti-red);
+          width: fit-content;
         }
         .eyebrow-icon-red {
           color: var(--kirti-red);
@@ -549,30 +558,23 @@ export const LandingShowcase: React.FC = () => {
           font-weight: 800;
           color: var(--text-primary);
           letter-spacing: -0.03em;
-        }
-        .section-main-subtitle {
-          font-size: 13px;
-          color: var(--text-muted);
+          margin: 0;
         }
         .curated-tabs-holder {
           display: flex;
+          align-items: center;
           max-width: 100%;
           overflow-x: auto;
         }
         @media (max-width: 768px) {
           .showcase-section-header {
             flex-direction: column;
-            align-items: center;
-            gap: 16px;
-          }
-          .showcase-title-block {
-            align-items: center;
-            text-align: center;
+            align-items: flex-start;
+            gap: 14px;
           }
           .curated-tabs-holder {
             width: 100%;
             scrollbar-width: none;
-            justify-content: center;
           }
           .curated-tabs-holder::-webkit-scrollbar {
             display: none;

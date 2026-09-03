@@ -1,136 +1,217 @@
 import React from 'react';
 import { useStore } from '../../lib/store';
-import { Compass, Users, Heart } from 'lucide-react';
+import { 
+  Compass, 
+  Heart, 
+  MapPin, 
+  Award, 
+  Sparkles, 
+  ArrowUp, 
+  Sun, 
+  Moon, 
+  ChevronRight,
+  ShieldCheck
+} from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const { setActiveTab, setSelectedZone, pandals } = useStore();
+  const { setActiveTab, setSelectedZone, pandals, theme, toggleTheme } = useStore();
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigate = (tab: any, zone?: string) => {
+    if (zone) {
+      setSelectedZone(zone);
+    }
+    setActiveTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <footer className="k-footer">
       <div className="footer-container">
-        {/* Top Grid */}
+        {/* Main Grid */}
         <div className="footer-grid">
-          {/* Column 1: Brand & Tagline */}
+          {/* Column 1: Brand & Identity */}
           <div className="footer-brand-col">
-            <div className="footer-logo-row" onClick={() => setActiveTab('discover')}>
+            <div className="footer-logo-row" onClick={() => handleNavigate('discover')}>
               <span className="footer-logo-text">KIRTI</span>
               <span className="footer-logo-dot"></span>
               <span className="footer-bengali-mark">কীর্তি</span>
             </div>
 
             <p className="footer-tagline">
-              The minimal, distraction-free social platform for discovering and rating Kolkata's Durga Puja pandals with friends.
+              Minimalist discovery, statistical ranking, and friend check-in platform for Kolkata's Durga Puja.
             </p>
 
-            <div className="footer-season-badge">
-              <span className="season-live-dot"></span>
-              <span>Kolkata Puja Season 2026 Live • {pandals.length} Masterpieces</span>
+            <div className="footer-meta-chips">
+              <span className="footer-chip">
+                <MapPin size={12} className="chip-icon-red" />
+                <span>Kolkata • 2026</span>
+              </span>
+              <span className="footer-chip">
+                <ShieldCheck size={12} className="chip-icon-gold" />
+                <span>Fair Scoring</span>
+              </span>
             </div>
           </div>
 
-          {/* Column 2: Pandal Discovery Links */}
+          {/* Column 2: Explore Pandals */}
           <div className="footer-links-col">
-            <h4 className="footer-col-title">
-              <Compass size={14} className="col-icon" />
-              <span>Discovery</span>
-            </h4>
+            <div className="footer-col-header">
+              <Compass size={15} className="col-icon" />
+              <span>Explore</span>
+            </div>
             <ul className="footer-link-list">
               <li>
                 <button
-                  className="link-hover-underline"
-                  onClick={() => { setActiveTab('discover'); setSelectedZone('all'); }}
+                  className="footer-nav-btn"
+                  onClick={() => handleNavigate('discover', 'all')}
                 >
-                  All 16 Masterpieces
+                  <ChevronRight size={13} className="btn-arrow" />
+                  <span>All Pandals</span>
+                  <span className="footer-count-badge">{pandals.length || 16}</span>
                 </button>
               </li>
               <li>
                 <button
-                  className="link-hover-underline"
-                  onClick={() => { setActiveTab('discover'); setSelectedZone('South Kolkata'); }}
+                  className="footer-nav-btn"
+                  onClick={() => handleNavigate('discover', 'South Kolkata')}
                 >
-                  South Kolkata Pandals
+                  <ChevronRight size={13} className="btn-arrow" />
+                  <span>South Kolkata</span>
                 </button>
               </li>
               <li>
                 <button
-                  className="link-hover-underline"
-                  onClick={() => { setActiveTab('discover'); setSelectedZone('North Kolkata'); }}
+                  className="footer-nav-btn"
+                  onClick={() => handleNavigate('discover', 'North Kolkata')}
                 >
-                  North Heritage Pandals
+                  <ChevronRight size={13} className="btn-arrow" />
+                  <span>North Heritage</span>
                 </button>
               </li>
               <li>
                 <button
-                  className="link-hover-underline"
-                  onClick={() => { setActiveTab('discover'); setSelectedZone('Salt Lake & East'); }}
+                  className="footer-nav-btn"
+                  onClick={() => handleNavigate('discover', 'Salt Lake & East')}
                 >
-                  Salt Lake & East Kolkata
+                  <ChevronRight size={13} className="btn-arrow" />
+                  <span>East & Salt Lake</span>
                 </button>
               </li>
               <li>
                 <button
-                  className="link-hover-underline"
-                  onClick={() => setActiveTab('map')}
+                  className="footer-nav-btn"
+                  onClick={() => handleNavigate('map')}
                 >
-                  Interactive Pandal Map
+                  <ChevronRight size={13} className="btn-arrow" />
+                  <span>Live Radar Map</span>
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Column 3: Social & Friends */}
+          {/* Column 3: Community & Awards */}
           <div className="footer-links-col">
-            <h4 className="footer-col-title">
-              <Users size={14} className="col-icon" />
-              <span>Social Journey</span>
-            </h4>
+            <div className="footer-col-header">
+              <Award size={15} className="col-icon" />
+              <span>Community</span>
+            </div>
             <ul className="footer-link-list">
               <li>
                 <button
-                  className="link-hover-underline"
-                  onClick={() => setActiveTab('friends')}
+                  className="footer-nav-btn highlight-item"
+                  onClick={() => handleNavigate('vote')}
                 >
-                  Friend Leaderboard
+                  <ChevronRight size={13} className="btn-arrow" />
+                  <span>Puja Awards</span>
+                  <span className="footer-action-badge">VOTE</span>
                 </button>
               </li>
               <li>
                 <button
-                  className="link-hover-underline"
-                  onClick={() => setActiveTab('vote')}
+                  className="footer-nav-btn"
+                  onClick={() => handleNavigate('friends')}
                 >
-                  2026 Puja Awards & Voting
+                  <ChevronRight size={13} className="btn-arrow" />
+                  <span>Leaderboard</span>
                 </button>
               </li>
               <li>
                 <button
-                  className="link-hover-underline"
-                  onClick={() => setActiveTab('profile')}
+                  className="footer-nav-btn"
+                  onClick={() => handleNavigate('profile')}
                 >
-                  My Visited Passport
+                  <ChevronRight size={13} className="btn-arrow" />
+                  <span>Visit Passport</span>
                 </button>
               </li>
               <li>
                 <button
-                  className="link-hover-underline"
-                  onClick={() => setActiveTab('friends')}
+                  className="footer-nav-btn"
+                  onClick={() => handleNavigate('activity')}
                 >
-                  Find Puja Friends
+                  <ChevronRight size={13} className="btn-arrow" />
+                  <span>Live Activity</span>
                 </button>
               </li>
             </ul>
+          </div>
+
+          {/* Column 4: Quick Utilities & Actions */}
+          <div className="footer-links-col footer-action-col">
+            <div className="footer-col-header">
+              <Sparkles size={15} className="col-icon" />
+              <span>Preferences</span>
+            </div>
+            <div className="footer-utility-box">
+              <button 
+                className="footer-utility-btn" 
+                onClick={toggleTheme}
+                title="Toggle Theme"
+              >
+                {theme === 'dark' ? (
+                  <>
+                    <Sun size={14} className="util-icon sun-icon" />
+                    <span>Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon size={14} className="util-icon moon-icon" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
+              </button>
+
+              <button 
+                className="footer-utility-btn" 
+                onClick={scrollToTop}
+                title="Back to Top"
+              >
+                <ArrowUp size={14} className="util-icon" />
+                <span>Back to Top</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Divider Bar with subtle gradient glow */}
+        <div className="footer-divider-wrap">
+          <div className="footer-divider-line"></div>
+        </div>
+
+        {/* Bottom Metadata Bar */}
         <div className="footer-bottom-bar">
           <div className="footer-copyright">
-            <span>© 2026 KIRTI (কীর্তি). Built for Kolkata's Durga Puja.</span>
+            <span>© 2026 KIRTI (কীর্তি) • Durga Puja Discovery & Rating</span>
           </div>
 
           <div className="footer-crafted-by">
             <span>Crafted with</span>
             <Heart size={12} className="heart-icon" />
-            <span>for art & culture explorers</span>
+            <span>for Kolkata art & culture explorers</span>
           </div>
         </div>
       </div>
@@ -139,15 +220,17 @@ export const Footer: React.FC = () => {
         .k-footer {
           background: var(--bg-card);
           border-top: 1px solid var(--border);
-          padding: 56px 0 36px 0;
-          margin-top: 60px;
+          padding: 48px 0 32px 0;
+          margin-top: 110px;
           color: var(--text-primary);
           transition: background-color 0.25s ease, border-color 0.25s ease;
+          position: relative;
         }
         @media (max-width: 768px) {
           .k-footer {
-            padding: 40px 0 110px 0;
-            margin-top: 40px;
+            padding: 32px 0 96px 0;
+            margin-top: 60px;
+            border-top: none;
           }
         }
         .footer-container {
@@ -156,102 +239,113 @@ export const Footer: React.FC = () => {
           padding: 0 32px;
           display: flex;
           flex-direction: column;
-          gap: 48px;
+          gap: 36px;
           box-sizing: border-box;
         }
         @media (max-width: 768px) {
           .footer-container {
             padding: 0 16px;
+            gap: 28px;
           }
         }
         .footer-grid {
           display: grid;
-          grid-template-columns: 2fr 1fr 1fr;
-          gap: 48px;
+          grid-template-columns: 1.6fr 1fr 1fr 0.9fr;
+          gap: 36px;
+          align-items: start;
         }
-        @media (max-width: 900px) {
+        @media (max-width: 960px) {
           .footer-grid {
             grid-template-columns: 1fr 1fr;
-            gap: 36px;
+            gap: 32px;
           }
         }
         @media (max-width: 600px) {
           .footer-grid {
             grid-template-columns: 1fr;
-            gap: 28px;
+            gap: 24px;
           }
         }
         .footer-brand-col {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 14px;
         }
         .footer-logo-row {
-          display: flex;
+          display: inline-flex;
           align-items: baseline;
           gap: 8px;
           cursor: pointer;
           user-select: none;
+          width: fit-content;
         }
         .footer-logo-text {
-          font-size: 26px;
+          font-size: 24px;
           font-weight: 800;
           letter-spacing: -0.04em;
           color: var(--text-primary);
         }
         .footer-logo-dot {
           display: inline-block;
-          width: 7px;
-          height: 7px;
+          width: 6px;
+          height: 6px;
           background-color: var(--kirti-red);
           border-radius: 50%;
-          margin-bottom: 3px;
+          margin-bottom: 2px;
         }
         .footer-bengali-mark {
-          font-size: 14px;
+          font-family: 'Tiro Bangla', serif;
+          font-size: 15px;
           font-weight: 700;
           color: var(--kirti-red);
-          opacity: 0.9;
+          opacity: 0.95;
         }
         .footer-tagline {
           font-size: 13px;
           color: var(--text-secondary);
-          line-height: 1.6;
-          max-width: 360px;
+          line-height: 1.55;
+          max-width: 320px;
+          margin: 0;
         }
-        .footer-season-badge {
-          display: inline-flex;
+        .footer-meta-chips {
+          display: flex;
           align-items: center;
           gap: 8px;
-          padding: 6px 14px;
+          flex-wrap: wrap;
+          margin-top: 2px;
+        }
+        .footer-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 10px;
           background: var(--bg-card-subtle);
           border: 1px solid var(--border);
           border-radius: var(--radius-full);
           font-size: 11px;
-          font-weight: 700;
-          color: var(--text-primary);
-          width: fit-content;
+          font-weight: 600;
+          color: var(--text-muted);
         }
-        .season-live-dot {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: var(--kirti-red);
-          animation: pulse 1.5s infinite;
+        .chip-icon-red {
+          color: var(--kirti-red);
         }
+        .chip-icon-gold {
+          color: var(--kirti-gold);
+        }
+
         .footer-links-col {
           display: flex;
           flex-direction: column;
           gap: 14px;
         }
-        .footer-col-title {
+        .footer-col-header {
           display: flex;
           align-items: center;
-          gap: 6px;
-          font-size: 13px;
+          gap: 7px;
+          font-size: 12px;
           font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.07em;
           color: var(--text-primary);
         }
         .col-icon {
@@ -263,45 +357,135 @@ export const Footer: React.FC = () => {
           margin: 0;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 8px;
         }
         .footer-link-list li {
           display: flex;
         }
-        .link-hover-underline {
-          position: relative;
-          background: none;
+        .footer-nav-btn {
+          background: transparent;
           border: none;
-          padding: 2px 0;
+          padding: 6px 0;
           font-size: 13px;
+          font-weight: 500;
           font-family: var(--font-sans);
           color: var(--text-secondary);
           cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           text-align: left;
-          transition: color 0.2s ease;
-          display: inline-block;
-        }
-        .link-hover-underline::after {
-          content: '';
-          position: absolute;
-          left: 0;
-          bottom: 0;
           width: 100%;
-          height: 1.5px;
-          background-color: var(--kirti-red);
-          transform: scaleX(0);
-          transform-origin: left;
-          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          border-radius: var(--radius-sm);
         }
-        .link-hover-underline:hover::after {
-          transform: scaleX(1);
+        .btn-arrow {
+          color: var(--text-muted);
+          opacity: 0;
+          transform: translateX(-4px);
+          transition: all 0.2s ease;
+          flex-shrink: 0;
         }
+        .footer-nav-btn:hover {
+          color: var(--text-primary);
+          transform: translateX(4px);
+        }
+        .footer-nav-btn:hover .btn-arrow {
+          opacity: 1;
+          transform: translateX(0);
+          color: var(--kirti-red);
+        }
+        .footer-nav-btn:active {
+          transform: scale(0.97);
+        }
+
+        .footer-count-badge {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 1px 6px;
+          border-radius: var(--radius-full);
+          background: var(--bg-card-subtle);
+          border: 1px solid var(--border);
+          color: var(--text-muted);
+          margin-left: auto;
+        }
+
+        .footer-action-badge {
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.05em;
+          padding: 2px 7px;
+          border-radius: var(--radius-full);
+          background: rgba(180, 35, 42, 0.15);
+          border: 1px solid rgba(180, 35, 42, 0.35);
+          color: var(--kirti-red);
+          margin-left: auto;
+          box-shadow: 0 0 8px rgba(180, 35, 42, 0.2);
+        }
+
+        .footer-utility-box {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .footer-utility-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 14px;
+          font-size: 12px;
+          font-weight: 600;
+          font-family: var(--font-sans);
+          color: var(--text-secondary);
+          background: var(--bg-card-subtle);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-md);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .footer-utility-btn:hover {
+          background: var(--bg-card);
+          border-color: var(--text-muted);
+          color: var(--text-primary);
+          transform: translateY(-1px);
+        }
+        .footer-utility-btn:active {
+          transform: scale(0.97);
+        }
+        .util-icon {
+          color: var(--text-muted);
+        }
+        .sun-icon {
+          color: var(--kirti-gold);
+        }
+        .moon-icon {
+          color: var(--kirti-red);
+        }
+
+        .footer-divider-wrap {
+          width: 100%;
+          height: 1px;
+          background: var(--border);
+          position: relative;
+        }
+        .footer-divider-line {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(180, 35, 42, 0.3) 30%, 
+            rgba(251, 191, 36, 0.25) 50%, 
+            rgba(180, 35, 42, 0.3) 70%, 
+            transparent 100%
+          );
+        }
+
         .footer-bottom-bar {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding-top: 24px;
-          border-top: 1px solid var(--border);
           font-size: 12px;
           color: var(--text-muted);
           flex-wrap: wrap;
@@ -320,3 +504,4 @@ export const Footer: React.FC = () => {
     </footer>
   );
 };
+
