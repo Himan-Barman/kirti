@@ -24,7 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   // Fetch application profile for the logged in user
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, email?: string) => {
     try {
       const { data, error } = await supabase!
         .from('profiles')
@@ -33,6 +33,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
       
       if (error) {
+        if (error.code === 'PGRST116') {
+          // Profile not found, let's create a default one safely
+          const baseName = email ? email.split('@')[0] : 'user';
+          const defaultProfile = {
+            id: userId,
+            username: `${baseName}_${Math.floor(Math.random() * 10000)}`,
+            display_name: baseName,
+            avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
+          };
+          
+          const { data: newProfile, error: insertError } = await supabase!
+            .from('profiles')
+            .insert([defaultProfile])
+            .select()
+            .single();
+            
+          if (insertError) {
+            console.error('Error creating profile on auth:', insertError);
+            return;
+          }
+          setProfile(newProfile as Profile);
+          return;
+        }
+        
         console.error('Error fetching profile:', error);
         return;
       }
@@ -59,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          await fetchProfile(session.user.id, session.user.email);
         }
       } catch (err) {
         console.error('Error during auth initialization:', err);
@@ -84,11 +108,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (newSession?.user) {
-        // Wait a small moment to ensure the database trigger creates the profile
+        // Wait a small moment to ensure the database trigger creates the profile (if one exists)
         if (event === 'SIGNED_IN') {
-           setTimeout(() => fetchProfile(newSession.user.id), 500);
+           setTimeout(() => fetchProfile(newSession.user.id, newSession.user.email), 500);
         } else {
-          fetchProfile(newSession.user.id);
+          fetchProfile(newSession.user.id, newSession.user.email);
         }
       } else {
         setProfile(null);
@@ -131,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = async () => {
     if (user) {
-      await fetchProfile(user.id);
+      await fetchProfile(user.id, user.email);
     }
   };
 

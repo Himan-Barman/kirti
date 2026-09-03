@@ -1,5 +1,6 @@
 import React from 'react';
 import { useStore } from './lib/store';
+import { useAuth } from './lib/auth';
 import { Navbar } from './components/navigation/Navbar';
 import { MobileNav } from './components/navigation/MobileNav';
 import { Footer } from './components/navigation/Footer';
@@ -29,8 +30,11 @@ export const AppContent: React.FC = () => {
     isLoading,
     setActiveTab,
     setSelectedPandal,
-    setSelectedFriendProfile
+    setSelectedFriendProfile,
+    showToast
   } = useStore();
+
+  const { session, loading: authLoading } = useAuth();
 
   React.useEffect(() => {
     // Initialize Lenis smooth scroll
@@ -41,6 +45,15 @@ export const AppContent: React.FC = () => {
       setActiveTab('reset-password');
     }
   }, [setActiveTab]);
+
+  // Protected Route Logic
+  React.useEffect(() => {
+    const protectedTabs = ['friends', 'activity', 'profile', 'vote'];
+    if (!authLoading && !session && protectedTabs.includes(activeTab)) {
+      setActiveTab('login' as any);
+      showToast('Please sign in to access this feature', 'warning');
+    }
+  }, [activeTab, session, authLoading, setActiveTab, showToast]);
 
   // Browser History & Mobile Back Navigation Controller
   React.useEffect(() => {

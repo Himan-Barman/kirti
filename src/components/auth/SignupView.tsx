@@ -57,30 +57,24 @@ export const SignupView: React.FC = () => {
 
     setLoading(true);
 
-    const { data: signUpData, error: signUpError } = await signUp(trimmedEmail, password);
+    const { error: signUpError } = await signUp(trimmedEmail, password);
 
     if (signUpError) {
-      let msg = "Couldn't create account. Try again";
-      const errLower = signUpError.message.toLowerCase();
+      let msg = signUpError.message || "Couldn't create account. Try again";
+      const errLower = (signUpError.message || '').toLowerCase();
       if (errLower.includes('already registered') || errLower.includes('exists')) {
         msg = 'Account already exists. Please sign in';
       } else if (errLower.includes('weak')) {
         msg = 'Password is too weak';
-      } else if (errLower.includes('valid email')) {
-        msg = 'Enter a valid email address';
+      } else if (errLower.includes('rate limit') || errLower.includes('too many requests')) {
+        msg = 'Too many attempts. Please try again later.';
       }
       showToast(msg, 'error');
       setLoading(false);
     } else {
       setLoading(false);
-      if (signUpData?.session === null) {
-        // Email verification is required by Supabase
-        showToast('Account created! Please check your email to verify.', 'success');
-        setActiveTab('login' as any);
-      } else {
-        showToast('Welcome to KIRTI', 'success');
-        setActiveTab('discover');
-      }
+      showToast('Welcome to KIRTI!', 'success');
+      setActiveTab('discover');
     }
   };
 

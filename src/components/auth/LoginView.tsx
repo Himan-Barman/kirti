@@ -41,10 +41,11 @@ export const LoginView: React.FC = () => {
     const { error: signInError } = await signIn(trimmedEmail, password);
 
     if (signInError) {
-      if (signInError.message.includes('Invalid login credentials')) {
+      const errLower = signInError.message.toLowerCase();
+      if (errLower.includes('invalid login credentials')) {
         showToast('Invalid email or password', 'error');
-      } else if (signInError.message.includes('Email not confirmed')) {
-        showToast('Please check your email to verify your account', 'warning');
+      } else if (errLower.includes('rate limit') || errLower.includes('too many requests')) {
+        showToast('Too many attempts. Please try again later.', 'error');
       } else {
         showToast('Unable to sign in. Please try again', 'error');
       }
