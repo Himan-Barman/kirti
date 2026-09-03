@@ -13,12 +13,22 @@ import {
   ClipboardList,
   Search,
   SlidersHorizontal,
-  MapPin,
-  Navigation,
-  X
+  X,
+  ChevronDown,
+  Building2,
+  Map,
+  Compass
 } from 'lucide-react';
 import type { RatingCategoryCode } from '../../types/database.types';
 import type { PandalRanking } from '../../types/ranking.types';
+import {
+  WEST_BENGAL_DISTRICTS,
+  WEST_BENGAL_CITIES,
+  KOLKATA_ZONES,
+  HERITAGE_OPTIONS,
+  PASSPORT_STATUS_OPTIONS,
+  SORT_OPTIONS
+} from '../../data/filterOptions';
 
 interface RankingCategory {
   id: RatingCategoryCode;
@@ -79,13 +89,32 @@ export const VoteView: React.FC = () => {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [selectedZone, setSelectedZone] = useState<string>('all');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
   const [selectedHeritage, setSelectedHeritage] = useState<string>('all');
   const [selectedVisitedFilter, setSelectedVisitedFilter] = useState<'all' | 'unvisited' | 'visited'>('all');
   const [selectedSort, setSelectedSort] = useState<'rating' | 'ratingCount' | 'name'>('rating');
 
+  // Expand / Minimize Accordion State for each filter group
+  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
+    zone: true,
+    district: true,
+    city: true,
+    heritage: true,
+    passport: true,
+    sort: true
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   const activeFiltersCount =
     (selectedZone !== 'all' ? 1 : 0) +
     (selectedDistrict !== 'all' ? 1 : 0) +
+    (selectedCity !== 'all' ? 1 : 0) +
     (selectedHeritage !== 'all' ? 1 : 0) +
     (selectedVisitedFilter !== 'all' ? 1 : 0) +
     (selectedSort !== 'rating' ? 1 : 0);
@@ -110,23 +139,78 @@ export const VoteView: React.FC = () => {
       // 2. Zone Filter
       if (selectedZone !== 'all' && p.zone !== selectedZone) return false;
 
-      // 3. District / City Filter
+      // 3. District Filter (All West Bengal Districts)
       if (selectedDistrict !== 'all') {
-        const addr = p.address.toLowerCase();
-        if (selectedDistrict === 'kolkata' && !addr.includes('kolkata')) return false;
-        if (selectedDistrict === 'howrah' && !addr.includes('howrah') && p.zone !== 'Howrah') return false;
-        if (selectedDistrict === 'saltlake' && !addr.includes('salt lake') && !addr.includes('bidhannagar') && !p.zone.includes('Salt Lake')) return false;
-        if (selectedDistrict === 'north24' && !addr.includes('north 24') && !addr.includes('dum dum') && !addr.includes('barasat')) return false;
+        const addr = (p.address + ' ' + p.zone + ' ' + (p.city || '') + ' ' + p.name).toLowerCase();
+        const d = selectedDistrict.toLowerCase();
+        if (d === 'kolkata') {
+          if (!addr.includes('kolkata')) return false;
+        } else if (d === 'north_24_parganas') {
+          if (
+            !addr.includes('north 24') &&
+            !addr.includes('salt lake') &&
+            !addr.includes('bidhannagar') &&
+            !addr.includes('dum dum') &&
+            !addr.includes('barasat') &&
+            !addr.includes('barrackpore') &&
+            !addr.includes('new town') &&
+            !p.zone.includes('Salt Lake')
+          )
+            return false;
+        } else if (d === 'south_24_parganas') {
+          if (
+            !addr.includes('south 24') &&
+            !addr.includes('behala') &&
+            !addr.includes('jadavpur') &&
+            !addr.includes('garia') &&
+            !addr.includes('narendrapur')
+          )
+            return false;
+        } else if (d === 'howrah') {
+          if (!addr.includes('howrah') && p.zone !== 'Howrah') return false;
+        } else if (d === 'hooghly') {
+          if (
+            !addr.includes('hooghly') &&
+            !addr.includes('chinsurah') &&
+            !addr.includes('serampore') &&
+            !addr.includes('chandannagar') &&
+            !addr.includes('uttarpara')
+          )
+            return false;
+        } else {
+          const rawName = selectedDistrict.replace(/_/g, ' ').toLowerCase();
+          if (!addr.includes(rawName)) return false;
+        }
       }
 
-      // 4. Heritage / Style Filter
+      // 4. City Filter (Curated 23 West Bengal Cities)
+      if (selectedCity !== 'all') {
+        const addr = (p.address + ' ' + p.zone + ' ' + (p.city || '') + ' ' + p.name).toLowerCase();
+        const c = selectedCity.toLowerCase();
+        if (c === 'kolkata') {
+          if (!addr.includes('kolkata')) return false;
+        } else if (c === 'howrah') {
+          if (!addr.includes('howrah') && p.zone !== 'Howrah') return false;
+        } else if (c === 'berhampore') {
+          if (!addr.includes('berhampore') && !addr.includes('baharampur')) return false;
+        } else if (c === 'midnapore') {
+          if (!addr.includes('midnapore') && !addr.includes('medinipur')) return false;
+        } else if (c === 'cooch_behar') {
+          if (!addr.includes('cooch behar') && !addr.includes('coochbehar')) return false;
+        } else {
+          const rawCity = selectedCity.replace(/_/g, ' ').toLowerCase();
+          if (!addr.includes(rawCity)) return false;
+        }
+      }
+
+      // 5. Heritage / Style Filter
       if (selectedHeritage === 'heritage_century') {
         if (!p.founded_year || (2026 - p.founded_year) < 100) return false;
       } else if (selectedHeritage === 'heritage_traditional') {
         if (!p.historical_significance && !p.heritage_status) return false;
       }
 
-      // 5. Visited Status
+      // 6. Visited Status
       if (selectedVisitedFilter === 'visited' && !p.userVisited) return false;
       if (selectedVisitedFilter === 'unvisited' && p.userVisited) return false;
 
@@ -137,6 +221,7 @@ export const VoteView: React.FC = () => {
     voteSearch,
     selectedZone,
     selectedDistrict,
+    selectedCity,
     selectedHeritage,
     selectedVisitedFilter
   ]);
@@ -519,127 +604,224 @@ export const VoteView: React.FC = () => {
             <div className="drawer-body">
               {/* 1. Zone / Area */}
               <div className="filter-group">
-                <div className="filter-group-header">
-                  <MapPin size={14} className="text-gold" />
-                  <span className="filter-group-title">Zone / Area</span>
+                <div
+                  className="filter-group-header"
+                  onClick={() => toggleSection('zone')}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={expandedSections.zone}
+                >
+                  <div className="filter-header-left">
+                    <Compass size={15} className="text-gold" />
+                    <span className="filter-group-title">Zone / Region</span>
+                    {selectedZone !== 'all' && (
+                      <span className="filter-badge-active">Selected</span>
+                    )}
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className={`filter-chevron-icon ${expandedSections.zone ? 'is-open' : ''}`}
+                  />
                 </div>
-                <div className="filter-pills-wrap">
-                  {[
-                    { id: 'all', label: 'All Zones' },
-                    { id: 'North Kolkata', label: 'North Kolkata' },
-                    { id: 'South Kolkata', label: 'South Kolkata' },
-                    { id: 'Central Kolkata', label: 'Central Kolkata' },
-                    { id: 'Salt Lake & East Kolkata', label: 'Salt Lake & East' },
-                    { id: 'Howrah', label: 'Howrah' }
-                  ].map((z) => (
-                    <button
-                      key={z.id}
-                      type="button"
-                      className={`filter-choice-pill ${selectedZone === z.id ? 'is-selected' : ''}`}
-                      onClick={() => setSelectedZone(z.id)}
-                    >
-                      {z.label}
-                    </button>
-                  ))}
-                </div>
+                {expandedSections.zone && (
+                  <div className="filter-pills-wrap">
+                    {KOLKATA_ZONES.map((z) => (
+                      <button
+                        key={z.id}
+                        type="button"
+                        className={`filter-choice-pill ${selectedZone === z.id ? 'is-selected' : ''}`}
+                        onClick={() => setSelectedZone(z.id)}
+                      >
+                        {z.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* 2. City / District */}
+              {/* 2. District Filter (All 23 Districts of West Bengal) */}
               <div className="filter-group">
-                <div className="filter-group-header">
-                  <Navigation size={14} className="text-red" />
-                  <span className="filter-group-title">City / District</span>
+                <div
+                  className="filter-group-header"
+                  onClick={() => toggleSection('district')}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={expandedSections.district}
+                >
+                  <div className="filter-header-left">
+                    <Map size={15} className="text-red" />
+                    <span className="filter-group-title">District (West Bengal)</span>
+                    {selectedDistrict !== 'all' && (
+                      <span className="filter-badge-active">Selected</span>
+                    )}
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className={`filter-chevron-icon ${expandedSections.district ? 'is-open' : ''}`}
+                  />
                 </div>
-                <div className="filter-pills-wrap">
-                  {[
-                    { id: 'all', label: 'All Districts' },
-                    { id: 'kolkata', label: 'Kolkata Central' },
-                    { id: 'saltlake', label: 'Bidhannagar / Salt Lake' },
-                    { id: 'howrah', label: 'Howrah District' },
-                    { id: 'north24', label: 'North 24 Parganas' }
-                  ].map((d) => (
-                    <button
-                      key={d.id}
-                      type="button"
-                      className={`filter-choice-pill ${selectedDistrict === d.id ? 'is-selected' : ''}`}
-                      onClick={() => setSelectedDistrict(d.id)}
-                    >
-                      {d.label}
-                    </button>
-                  ))}
-                </div>
+                {expandedSections.district && (
+                  <div className="filter-pills-wrap">
+                    {WEST_BENGAL_DISTRICTS.map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        className={`filter-choice-pill ${selectedDistrict === d.id ? 'is-selected' : ''}`}
+                        onClick={() => setSelectedDistrict(d.id)}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* 3. Heritage & Style */}
+              {/* 3. City / Town Filter (Curated 23 West Bengal Cities) */}
               <div className="filter-group">
-                <div className="filter-group-header">
-                  <Sparkles size={14} className="text-gold" />
-                  <span className="filter-group-title">Heritage & Legacy</span>
+                <div
+                  className="filter-group-header"
+                  onClick={() => toggleSection('city')}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={expandedSections.city}
+                >
+                  <div className="filter-header-left">
+                    <Building2 size={15} className="text-gold" />
+                    <span className="filter-group-title">City / Town (West Bengal)</span>
+                    {selectedCity !== 'all' && (
+                      <span className="filter-badge-active">Selected</span>
+                    )}
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className={`filter-chevron-icon ${expandedSections.city ? 'is-open' : ''}`}
+                  />
                 </div>
-                <div className="filter-pills-wrap">
-                  {[
-                    { id: 'all', label: 'All Heritage' },
-                    { id: 'heritage_century', label: 'Century Heritage (100+ Yrs)' },
-                    { id: 'heritage_traditional', label: 'Iconic & Traditional' }
-                  ].map((h) => (
-                    <button
-                      key={h.id}
-                      type="button"
-                      className={`filter-choice-pill ${selectedHeritage === h.id ? 'is-selected' : ''}`}
-                      onClick={() => setSelectedHeritage(h.id)}
-                    >
-                      {h.label}
-                    </button>
-                  ))}
-                </div>
+                {expandedSections.city && (
+                  <div className="filter-pills-wrap">
+                    {WEST_BENGAL_CITIES.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={`filter-choice-pill ${selectedCity === c.id ? 'is-selected' : ''}`}
+                        onClick={() => setSelectedCity(c.id)}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* 4. Visited Status */}
+              {/* 4. Heritage & Style */}
               <div className="filter-group">
-                <div className="filter-group-header">
-                  <Vote size={14} className="text-red" />
-                  <span className="filter-group-title">Passport Status</span>
+                <div
+                  className="filter-group-header"
+                  onClick={() => toggleSection('heritage')}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={expandedSections.heritage}
+                >
+                  <div className="filter-header-left">
+                    <Sparkles size={15} className="text-red" />
+                    <span className="filter-group-title">Heritage & Legacy</span>
+                    {selectedHeritage !== 'all' && (
+                      <span className="filter-badge-active">Selected</span>
+                    )}
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className={`filter-chevron-icon ${expandedSections.heritage ? 'is-open' : ''}`}
+                  />
                 </div>
-                <div className="filter-pills-wrap">
-                  {[
-                    { id: 'all', label: 'All Pandals' },
-                    { id: 'unvisited', label: 'Unvisited (To Rate)' },
-                    { id: 'visited', label: 'Already Visited' }
-                  ].map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      className={`filter-choice-pill ${selectedVisitedFilter === v.id ? 'is-selected' : ''}`}
-                      onClick={() => setSelectedVisitedFilter(v.id as any)}
-                    >
-                      {v.label}
-                    </button>
-                  ))}
-                </div>
+                {expandedSections.heritage && (
+                  <div className="filter-pills-wrap">
+                    {HERITAGE_OPTIONS.map((h) => (
+                      <button
+                        key={h.id}
+                        type="button"
+                        className={`filter-choice-pill ${selectedHeritage === h.id ? 'is-selected' : ''}`}
+                        onClick={() => setSelectedHeritage(h.id)}
+                      >
+                        {h.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* 5. Sort Order */}
+              {/* 5. Visited Status */}
               <div className="filter-group">
-                <div className="filter-group-header">
-                  <TrendingUp size={14} className="text-gold" />
-                  <span className="filter-group-title">Sort Criteria</span>
+                <div
+                  className="filter-group-header"
+                  onClick={() => toggleSection('passport')}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={expandedSections.passport}
+                >
+                  <div className="filter-header-left">
+                    <Vote size={15} className="text-gold" />
+                    <span className="filter-group-title">Passport Status</span>
+                    {selectedVisitedFilter !== 'all' && (
+                      <span className="filter-badge-active">Selected</span>
+                    )}
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className={`filter-chevron-icon ${expandedSections.passport ? 'is-open' : ''}`}
+                  />
                 </div>
-                <div className="filter-pills-wrap">
-                  {[
-                    { id: 'rating', label: 'Highest Rated ★' },
-                    { id: 'ratingCount', label: 'Most Ratings 🗳️' },
-                    { id: 'name', label: 'Alphabetical A-Z 🔤' }
-                  ].map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      className={`filter-choice-pill ${selectedSort === s.id ? 'is-selected' : ''}`}
-                      onClick={() => setSelectedSort(s.id as any)}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
+                {expandedSections.passport && (
+                  <div className="filter-pills-wrap">
+                    {PASSPORT_STATUS_OPTIONS.map((v) => (
+                      <button
+                        key={v.id}
+                        type="button"
+                        className={`filter-choice-pill ${selectedVisitedFilter === v.id ? 'is-selected' : ''}`}
+                        onClick={() => setSelectedVisitedFilter(v.id as any)}
+                      >
+                        {v.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 6. Sort Order */}
+              <div className="filter-group">
+                <div
+                  className="filter-group-header"
+                  onClick={() => toggleSection('sort')}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={expandedSections.sort}
+                >
+                  <div className="filter-header-left">
+                    <TrendingUp size={15} className="text-red" />
+                    <span className="filter-group-title">Sort Criteria</span>
+                    {selectedSort !== 'rating' && (
+                      <span className="filter-badge-active">Selected</span>
+                    )}
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className={`filter-chevron-icon ${expandedSections.sort ? 'is-open' : ''}`}
+                  />
                 </div>
+                {expandedSections.sort && (
+                  <div className="filter-pills-wrap">
+                    {SORT_OPTIONS.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        className={`filter-choice-pill ${selectedSort === s.id ? 'is-selected' : ''}`}
+                        onClick={() => setSelectedSort(s.id as any)}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -651,9 +833,12 @@ export const VoteView: React.FC = () => {
                 onClick={() => {
                   setSelectedZone('all');
                   setSelectedDistrict('all');
+                  setSelectedCity('all');
                   setSelectedHeritage('all');
                   setSelectedVisitedFilter('all');
                   setSelectedSort('rating');
+                  setCastVotePage(1);
+                  setRankingPage(1);
                 }}
               >
                 Reset All
@@ -1065,8 +1250,28 @@ export const VoteView: React.FC = () => {
           display: flex;
           flex-direction: column;
           gap: 10px;
+          border-bottom: 1px solid var(--border);
+          padding-bottom: 16px;
+        }
+        .filter-group:last-child {
+          border-bottom: none;
+          padding-bottom: 0;
         }
         .filter-group-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          cursor: pointer;
+          user-select: none;
+          padding: 4px 2px;
+          border-radius: var(--radius-sm);
+          transition: opacity 0.15s ease;
+        }
+        .filter-group-header:hover {
+          opacity: 0.85;
+        }
+        .filter-header-left {
           display: flex;
           align-items: center;
           gap: 8px;
@@ -1074,14 +1279,56 @@ export const VoteView: React.FC = () => {
         .filter-group-title {
           font-size: 13px;
           font-weight: 700;
-          color: var(--text-secondary);
+          color: var(--text-primary);
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
+        .filter-badge-active {
+          font-size: 10px;
+          font-weight: 800;
+          padding: 2px 7px;
+          border-radius: var(--radius-full);
+          background: rgba(180, 35, 42, 0.15);
+          color: var(--kirti-red);
+          border: 1px solid rgba(180, 35, 42, 0.3);
+          letter-spacing: 0.02em;
+        }
+        .filter-chevron-icon {
+          color: var(--text-muted);
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
+        }
+        .filter-chevron-icon.is-open {
+          transform: rotate(180deg);
+        }
+        .filter-group-header:hover .filter-chevron-icon {
+          color: var(--text-primary);
+        }
+
         .filter-pills-wrap {
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
+          max-height: 240px;
+          overflow-y: auto;
+          padding-right: 4px;
+          animation: accordionExpand 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes accordionExpand {
+          from {
+            opacity: 0;
+            transform: translateY(-4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .filter-pills-wrap::-webkit-scrollbar {
+          width: 4px;
+        }
+        .filter-pills-wrap::-webkit-scrollbar-thumb {
+          background: var(--border);
+          border-radius: var(--radius-full);
         }
         .filter-choice-pill {
           padding: 7px 14px;

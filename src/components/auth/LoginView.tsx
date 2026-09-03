@@ -43,6 +43,8 @@ export const LoginView: React.FC = () => {
     if (signInError) {
       if (signInError.message.includes('Invalid login credentials')) {
         showToast('Invalid email or password', 'error');
+      } else if (signInError.message.includes('Email not confirmed')) {
+        showToast('Please check your email to verify your account', 'warning');
       } else {
         showToast('Unable to sign in. Please try again', 'error');
       }

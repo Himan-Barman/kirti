@@ -163,11 +163,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [showRouteOnMap, setShowRouteOnMap] = useState(false);
   const [mapRadiusKm, setMapRadiusKm] = useState<number | null>(null);
 
-  const refreshUserLocation = () => {
+  const refreshUserLocation = (isManual: boolean = false) => {
     if (!navigator.geolocation) {
       setLocationStatus('unsupported');
       setUserLocation(DEFAULT_KOLKATA_CENTER);
-      showToast('Geolocation is not supported by your browser', 'warning');
+      if (isManual) {
+        showToast('Geolocation is not supported by your browser', 'warning');
+      }
       return;
     }
 
@@ -182,22 +184,34 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         });
         setLocationStatus('granted');
         setIsLocationRefreshing(false);
-        showToast('Live GPS location updated', 'success');
+        if (isManual) {
+          showToast('Live GPS location updated', 'success');
+        }
       },
       (err) => {
         console.warn('Geolocation denied or error:', err.message);
         setLocationStatus('denied');
         setUserLocation(DEFAULT_KOLKATA_CENTER);
         setIsLocationRefreshing(false);
-        showToast('Location permission denied. Using Kolkata Central.', 'info');
+        if (isManual) {
+          showToast('Location permission denied. Using Kolkata Central.', 'info');
+        }
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   };
 
   useEffect(() => {
-    refreshUserLocation();
+    // Initial load: fetch silently without firing toasts
+    refreshUserLocation(false);
   }, []);
+
+  // Clear toasts when entering Auth pages
+  useEffect(() => {
+    if (['login', 'signup', 'forgot-password', 'reset-password'].includes(activeTab)) {
+      setToasts([]);
+    }
+  }, [activeTab]);
 
   // Fetch data from Supabase on mount
   useEffect(() => {
@@ -269,6 +283,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const showToast = (msg: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
+    // If currently on an auth tab, strictly ignore non-auth/system toasts
+    const isAuth = ['login', 'signup', 'forgot-password', 'reset-password'].includes(activeTab);
+    const isLocationOrSystemMsg = 
+      msg.toLowerCase().includes('location') || 
+      msg.toLowerCase().includes('geolocation') || 
+      msg.toLowerCase().includes('gps') ||
+      msg.toLowerCase().includes('kolkata central') ||
+      msg.toLowerCase().includes('settings') ||
+      msg.toLowerCase().includes('visit logged') ||
+      msg.toLowerCase().includes('distance filter');
+      
+    if (isAuth && isLocationOrSystemMsg) {
+      return;
+    }
+
     setToasts(prev => {
       // Deduplicate: Don't show the exact same message if it's already visible
       if (prev.some(t => t.message === msg)) return prev;
@@ -443,7 +472,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         showToast,
         removeToast,
         toggleTheme,
-        refreshUserLocation,
+        refreshUserLocation: () => refreshUserLocation(true),
         setMapHighlightPandalId,
         setShowRouteOnMap,
         setMapRadiusKm,

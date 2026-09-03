@@ -57,7 +57,7 @@ export const SignupView: React.FC = () => {
 
     setLoading(true);
 
-    const { error: signUpError } = await signUp(trimmedEmail, password);
+    const { data: signUpData, error: signUpError } = await signUp(trimmedEmail, password);
 
     if (signUpError) {
       let msg = "Couldn't create account. Try again";
@@ -73,8 +73,14 @@ export const SignupView: React.FC = () => {
       setLoading(false);
     } else {
       setLoading(false);
-      showToast('Welcome to KIRTI', 'success');
-      setActiveTab('discover');
+      if (signUpData?.session === null) {
+        // Email verification is required by Supabase
+        showToast('Account created! Please check your email to verify.', 'success');
+        setActiveTab('login' as any);
+      } else {
+        showToast('Welcome to KIRTI', 'success');
+        setActiveTab('discover');
+      }
     }
   };
 
