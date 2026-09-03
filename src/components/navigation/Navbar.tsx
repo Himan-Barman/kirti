@@ -68,10 +68,8 @@ export const Navbar: React.FC = () => {
           <div className="header-inner-row">
             {/* Brand Logo */}
             <div className="brand-group" onClick={() => setActiveTab('discover')}>
-              <div className="logo-badge">
-                <span className="logo-text">KIRTI</span>
-                <span className="logo-dot"></span>
-              </div>
+              <span className="logo-text">KIRTI</span>
+              <span className="logo-dot"></span>
               <span className="logo-bengali-mark">কীর্তি</span>
             </div>
 
@@ -364,44 +362,39 @@ export const Navbar: React.FC = () => {
           }
         }
         .brand-group {
-          display: flex;
+          display: inline-flex;
           align-items: baseline;
           gap: 8px;
           cursor: pointer;
           user-select: none;
           flex-shrink: 0;
         }
-        .logo-badge {
-          display: flex;
-          align-items: center;
-          position: relative;
-        }
         .logo-text {
-          font-size: 24px;
+          font-size: 19px;
+          line-height: 1;
           font-weight: 800;
-          letter-spacing: -0.04em;
+          letter-spacing: -0.03em;
           color: var(--text-primary);
         }
         @media (max-width: 768px) {
           .logo-text {
-            font-size: 20px;
+            font-size: 17px;
           }
         }
         .logo-dot {
           display: inline-block;
-          width: 7px;
-          height: 7px;
+          width: 6px;
+          height: 6px;
           background-color: var(--kirti-red);
           border-radius: 50%;
-          margin-left: 2px;
-          margin-bottom: 3px;
+          margin-bottom: 2px;
         }
         .logo-bengali-mark {
-          font-size: 14px;
+          font-family: 'Tiro Bangla', serif;
+          font-size: 15px;
           font-weight: 700;
           color: var(--kirti-red);
-          opacity: 0.9;
-          letter-spacing: 0.05em;
+          opacity: 0.95;
         }
         .header-search {
           flex: 1;

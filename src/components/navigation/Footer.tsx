@@ -3,14 +3,12 @@ import { useStore } from '../../lib/store';
 import { 
   Compass, 
   Heart, 
-  MapPin, 
   Award, 
   Sparkles, 
   ArrowUp, 
   Sun, 
   Moon, 
-  ChevronRight,
-  ShieldCheck
+  ChevronRight
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
@@ -42,23 +40,22 @@ export const Footer: React.FC = () => {
             </div>
 
             <p className="footer-tagline">
-              Minimalist discovery, statistical ranking, and friend check-in platform for Kolkata's Durga Puja.
+              <span className="tagline-phrase">
+                <span>Discover</span>
+                <span className="footer-logo-dot tagline-brand-dot"></span>
+                <span>Rate</span>
+                <span className="footer-logo-dot tagline-brand-dot"></span>
+                <span>Explore</span>
+                <span className="footer-logo-dot tagline-brand-dot"></span>
+                <span>Connect</span>
+              </span>
+              <br />
+              <span className="tagline-sub">Your digital companion for the Puja journey.</span>
             </p>
-
-            <div className="footer-meta-chips">
-              <span className="footer-chip">
-                <MapPin size={12} className="chip-icon-red" />
-                <span>Kolkata • 2026</span>
-              </span>
-              <span className="footer-chip">
-                <ShieldCheck size={12} className="chip-icon-gold" />
-                <span>Fair Scoring</span>
-              </span>
-            </div>
           </div>
 
-          {/* Column 2: Explore Pandals */}
-          <div className="footer-links-col">
+          {/* Column 2: Explore Pandals (Left Aligned on Mobile) */}
+          <div className="footer-links-col footer-col-explore">
             <div className="footer-col-header">
               <Compass size={15} className="col-icon" />
               <span>Explore</span>
@@ -113,8 +110,8 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Column 3: Community & Awards */}
-          <div className="footer-links-col">
+          {/* Column 3: Community & Awards (Right Aligned on Mobile) */}
+          <div className="footer-links-col footer-col-community">
             <div className="footer-col-header">
               <Award size={15} className="col-icon" />
               <span>Community</span>
@@ -205,13 +202,11 @@ export const Footer: React.FC = () => {
         {/* Bottom Metadata Bar */}
         <div className="footer-bottom-bar">
           <div className="footer-copyright">
-            <span>© 2026 KIRTI (কীর্তি) • Durga Puja Discovery & Rating</span>
+            <span>© 2026 KIRTI কীর্তি . Durga Puja Discovery & Community</span>
           </div>
 
           <div className="footer-crafted-by">
-            <span>Crafted with</span>
-            <Heart size={12} className="heart-icon" />
-            <span>for Kolkata art & culture explorers</span>
+            <span>Made with <Heart size={12} className="heart-icon" /> for every Puja memory, every discovery, every journey.</span>
           </div>
         </div>
       </div>
@@ -226,13 +221,6 @@ export const Footer: React.FC = () => {
           transition: background-color 0.25s ease, border-color 0.25s ease;
           position: relative;
         }
-        @media (max-width: 768px) {
-          .k-footer {
-            padding: 32px 0 96px 0;
-            margin-top: 60px;
-            border-top: none;
-          }
-        }
         .footer-container {
           max-width: 1280px;
           margin: 0 auto;
@@ -241,12 +229,6 @@ export const Footer: React.FC = () => {
           flex-direction: column;
           gap: 36px;
           box-sizing: border-box;
-        }
-        @media (max-width: 768px) {
-          .footer-container {
-            padding: 0 16px;
-            gap: 28px;
-          }
         }
         .footer-grid {
           display: grid;
@@ -260,10 +242,109 @@ export const Footer: React.FC = () => {
             gap: 32px;
           }
         }
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
+          .k-footer {
+            padding: 32px 0 96px 0;
+            margin-top: 60px;
+            border-top: 1px solid var(--border);
+          }
+          .footer-container {
+            padding: 0 20px;
+            gap: 28px;
+            align-items: center;
+          }
           .footer-grid {
-            grid-template-columns: 1fr;
-            gap: 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px 16px;
+            width: 100%;
+          }
+          .footer-brand-col {
+            grid-column: 1 / -1;
+            align-items: center !important;
+            text-align: center !important;
+            margin-bottom: 6px;
+          }
+          .footer-logo-row {
+            justify-content: center !important;
+            margin: 0 auto !important;
+          }
+          .footer-tagline {
+            text-align: center !important;
+            margin: 0 auto !important;
+            max-width: 340px !important;
+          }
+          .footer-col-explore {
+            grid-column: 1;
+            align-items: flex-start !important;
+            text-align: left !important;
+          }
+          .footer-col-explore .footer-col-header {
+            justify-content: flex-start !important;
+          }
+          .footer-col-explore .footer-link-list {
+            align-items: flex-start !important;
+            text-align: left !important;
+            width: 100% !important;
+          }
+          .footer-col-explore .footer-link-list li {
+            justify-content: flex-start !important;
+            width: 100% !important;
+          }
+          .footer-col-explore .footer-nav-btn {
+            justify-content: flex-start !important;
+            text-align: left !important;
+          }
+          .footer-col-explore .footer-nav-btn .btn-arrow {
+            display: none !important;
+          }
+          .footer-col-explore .footer-count-badge {
+            margin-left: 6px !important;
+          }
+
+          .footer-col-community {
+            grid-column: 2;
+            align-items: flex-end !important;
+            text-align: right !important;
+          }
+          .footer-col-community .footer-col-header {
+            justify-content: flex-end !important;
+          }
+          .footer-col-community .footer-link-list {
+            align-items: flex-end !important;
+            text-align: right !important;
+            width: 100% !important;
+          }
+          .footer-col-community .footer-link-list li {
+            justify-content: flex-end !important;
+            width: 100% !important;
+          }
+          .footer-col-community .footer-nav-btn {
+            justify-content: flex-end !important;
+            text-align: right !important;
+          }
+          .footer-col-community .footer-nav-btn .btn-arrow {
+            display: none !important;
+          }
+          .footer-col-community .footer-action-badge {
+            margin-left: 6px !important;
+          }
+
+          .footer-action-col {
+            display: none !important;
+          }
+          .footer-bottom-bar {
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
+            gap: 8px !important;
+          }
+          .footer-copyright {
+            text-align: center !important;
+          }
+          .footer-crafted-by {
+            justify-content: center !important;
           }
         }
         .footer-brand-col {
@@ -280,10 +361,16 @@ export const Footer: React.FC = () => {
           width: fit-content;
         }
         .footer-logo-text {
-          font-size: 24px;
+          font-size: 20px;
+          line-height: 1;
           font-weight: 800;
-          letter-spacing: -0.04em;
+          letter-spacing: -0.03em;
           color: var(--text-primary);
+        }
+        @media (max-width: 768px) {
+          .footer-logo-text {
+            font-size: 18px;
+          }
         }
         .footer-logo-dot {
           display: inline-block;
@@ -301,11 +388,29 @@ export const Footer: React.FC = () => {
           opacity: 0.95;
         }
         .footer-tagline {
-          font-size: 13px;
+          font-size: 13.5px;
           color: var(--text-secondary);
-          line-height: 1.55;
-          max-width: 320px;
+          line-height: 1.6;
+          max-width: 360px;
           margin: 0;
+        }
+        .tagline-phrase {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+          color: var(--text-primary);
+        }
+        .tagline-brand-dot {
+          margin: 0 7px 0 7px !important;
+          margin-bottom: 2px !important;
+          vertical-align: middle;
+        }
+        .tagline-sub {
+          display: inline-block;
+          margin-top: 2px;
+          color: var(--text-secondary);
+          font-size: 13px;
         }
         .footer-meta-chips {
           display: flex;

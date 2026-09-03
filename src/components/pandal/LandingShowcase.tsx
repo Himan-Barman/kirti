@@ -268,7 +268,7 @@ export const LandingShowcase: React.FC = () => {
             iconRight={<ArrowRight size={14} />}
             onClick={() => setActiveTab('map')}
           >
-            Explore All {pandals.length} Pandals on Interactive Map
+            Explore All {pandals.length} Pandals
           </Button>
         </div>
       </section>
@@ -285,20 +285,9 @@ export const LandingShowcase: React.FC = () => {
           </div>
         </div>
 
-        {/* Left Heading & Right View Action in Same Row */}
+        {/* Left Heading */}
         <div className="showcase-section-header">
           <h2 className="section-main-title">Near You Now</h2>
-
-          <Button
-            variant="subtle"
-            size="sm"
-            rounded="full"
-            icon={<Navigation size={14} />}
-            iconRight={<ArrowRight size={13} />}
-            onClick={() => setActiveTab('nearby')}
-          >
-            Full Radar View
-          </Button>
         </div>
 
         {/* 3 Nearest Pandals Grid */}
@@ -320,6 +309,20 @@ export const LandingShowcase: React.FC = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Full Radar View Button (Below the cards) */}
+        <div className="view-more-row">
+          <Button
+            variant="outline"
+            size="md"
+            rounded="full"
+            icon={<Navigation size={15} />}
+            iconRight={<ArrowRight size={14} />}
+            onClick={() => setActiveTab('nearby')}
+          >
+            Full Radar View
+          </Button>
         </div>
       </section>
 
@@ -609,7 +612,7 @@ export const LandingShowcase: React.FC = () => {
         }
         @media (max-width: 768px) {
           .pillars-grid {
-            grid-template-columns: 1fr;
+            display: none !important;
           }
         }
         .pillar-item {

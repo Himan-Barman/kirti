@@ -52,16 +52,9 @@ export const FriendJourneyCompare: React.FC<FriendJourneyCompareProps> = ({ show
         </div>
       </div>
 
-      {/* Left-aligned Heading & Right-aligned Status */}
+      {/* Left-aligned Heading */}
       <div className="friend-section-header">
-        <h2 className="section-main-title">Friend Circle Leaderboard</h2>
-
-        <div className="friend-header-right">
-          <div className="friend-live-pill">
-            <span className="live-pulse-dot"></span>
-            <span>Live Standings</span>
-          </div>
-        </div>
+        <h2 className="section-main-title">Friend Circle</h2>
       </div>
 
       {/* Conditional: If NOT logged in / signed up, show ultra-premium Guest Sign Up Banner */}
@@ -306,21 +299,25 @@ export const FriendJourneyCompare: React.FC<FriendJourneyCompareProps> = ({ show
           position: relative;
           z-index: 1;
           display: flex;
+          flex-direction: column;
           align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 24px;
+          justify-content: center;
+          text-align: center;
+          gap: 20px;
+          width: 100%;
         }
         .guest-banner-left {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 20px;
-          flex: 1;
-          min-width: 280px;
+          justify-content: center;
+          text-align: center;
+          gap: 16px;
+          width: 100%;
         }
         .guest-banner-icon-box {
-          width: 52px;
-          height: 52px;
+          width: 56px;
+          height: 56px;
           border-radius: var(--radius-xl);
           background: rgba(180, 35, 42, 0.12);
           border: 1px solid rgba(180, 35, 42, 0.25);
@@ -328,58 +325,59 @@ export const FriendJourneyCompare: React.FC<FriendJourneyCompareProps> = ({ show
           align-items: center;
           justify-content: center;
           color: var(--kirti-red);
+          margin: 0 auto;
           flex-shrink: 0;
         }
         .guest-banner-text {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          gap: 8px;
         }
         .guest-pill-tag {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 5px;
           font-size: 11px;
           font-weight: 700;
           color: var(--kirti-gold);
           text-transform: uppercase;
           letter-spacing: 0.06em;
+          margin: 0 auto;
         }
         .sparkle-gold {
           color: var(--kirti-gold);
         }
         .guest-banner-headline {
-          font-size: 18px;
+          font-size: 20px;
           font-weight: 800;
           color: var(--text-primary);
           margin: 0;
           letter-spacing: -0.02em;
+          text-align: center;
         }
         .guest-banner-subtext {
-          font-size: 13px;
+          font-size: 13.5px;
           color: var(--text-secondary);
-          margin: 0;
-          line-height: 1.5;
+          margin: 0 auto;
+          line-height: 1.55;
           max-width: 520px;
+          text-align: center;
         }
         .guest-banner-actions {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 12px;
-          flex-shrink: 0;
+          flex-wrap: wrap;
+          width: 100%;
         }
         @media (max-width: 768px) {
           .friend-guest-banner {
-            padding: 20px;
-          }
-          .guest-banner-inner {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-          .guest-banner-left {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 14px;
+            padding: 22px 18px;
           }
           .guest-banner-actions {
             width: 100%;
