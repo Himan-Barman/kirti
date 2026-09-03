@@ -323,6 +323,9 @@ p {
 .vote-filter-collapsed-btn,
 .vote-search-expanded-bar,
 .search-bar-wrap,
+.nearby-pandal-bar,
+.nominee-compact-card,
+.ranking-card,
 .beam-interactive {
   --border-angle: 0deg;
   position: relative;
@@ -352,6 +355,9 @@ p {
 .search-bar-wrap::after,
 .tab-btn::after,
 .nav-link::after,
+.nearby-pandal-bar::after,
+.nominee-compact-card::after,
+.ranking-card::after,
 .beam-interactive::after {
   content: '';
   position: absolute;
@@ -401,6 +407,9 @@ p {
 .search-bar-wrap:focus-within::after,
 .tab-btn:hover::after,
 .nav-link:hover::after,
+.nearby-pandal-bar:hover::after,
+.nominee-compact-card:hover::after,
+.ranking-card:hover::after,
 .beam-interactive:hover::after {
   opacity: 1;
 }
@@ -421,7 +430,12 @@ p {
 .profile-pill:hover,
 .ui-select-trigger:hover,
 .search-bar-wrap:hover,
-.search-bar-wrap:focus-within {
+.search-bar-wrap:focus-within,
+.tab-btn:hover,
+.nearby-pandal-bar:hover,
+.nominee-compact-card:hover,
+.ranking-card:hover,
+.beam-interactive:hover {
   border-color: transparent !important;
   box-shadow: 0 0 16px var(--beam-glow-color) !important;
 }

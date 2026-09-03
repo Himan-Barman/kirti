@@ -90,7 +90,8 @@ export const VoteView: React.FC = () => {
     (selectedVisitedFilter !== 'all' ? 1 : 0) +
     (selectedSort !== 'rating' ? 1 : 0);
 
-  // Pagination state for Rankings (20 pandals per page)
+  // Pagination state for Cast Vote and Rankings (20 pandals per page)
+  const [castVotePage, setCastVotePage] = useState<number>(1);
   const [rankingPage, setRankingPage] = useState<number>(1);
   const itemsPerPage = 20;
 
@@ -130,67 +131,148 @@ export const VoteView: React.FC = () => {
       if (selectedVisitedFilter === 'unvisited' && p.userVisited) return false;
 
       return true;
-    }).sort((a, b) => {
-      if (selectedSort === 'rating') return b.avgRating - a.avgRating;
-      if (selectedSort === 'ratingCount') return b.ratingCount - a.ratingCount;
-      if (selectedSort === 'name') return a.name.localeCompare(b.name);
-      return 0;
     });
-  }, [pandals, voteSearch, selectedZone, selectedDistrict, selectedHeritage, selectedVisitedFilter, selectedSort]);
+  }, [
+    pandals,
+    voteSearch,
+    selectedZone,
+    selectedDistrict,
+    selectedHeritage,
+    selectedVisitedFilter
+  ]);
 
-  const rankings: PandalRanking[] = [...filteredPandals].map((p) => {
-    const score = p.avgRating; 
-    const count = p.ratingCount;
-    
-    return {
-      id: `rank_${p.id}`,
-      pandal_id: p.id,
-      season_id: 's_2026',
-      category_id: selectedCatId,
-      category_code: selectedCatId,
-      raw_mean: p.avgRating,
-      bayesian_mean: score,
-      lower_confidence_score: score - 0.2,
-      final_score: score,
-      raw_rating_count: count,
-      effective_sample_size: count,
-      standard_deviation: 0.5,
-      one_star: 1, two_star: 2, three_star: 5, four_star: 15, five_star: count - 23,
-      rank: 0,
-      is_rank_eligible: count >= 10,
-      ranking_version: '2026-v1',
-      calculated_at: new Date().toISOString(),
-      pandal_name: p.name,
-      pandal_slug: p.slug,
-      pandal_image_url: p.image_url,
-      pandal_address: p.address,
-      pandal_zone: p.zone
-    } as any;
-  }).sort((a, b) => {
-    if (Math.abs(b.final_score - a.final_score) > 0.001) return b.final_score - a.final_score;
-    if (Math.abs(b.lower_confidence_score - a.lower_confidence_score) > 0.001) return b.lower_confidence_score - a.lower_confidence_score;
-    if (b.raw_rating_count !== a.raw_rating_count) return b.raw_rating_count - a.raw_rating_count;
-    return a.pandal_id.localeCompare(b.pandal_id);
-  });
+  // Sort Logic for Cast Vote
+  const sortedCastVotePandals = useMemo(() => {
+    const list = [...filteredPandals];
+    if (selectedSort === 'rating') {
+      list.sort((a, b) => b.avgRating - a.avgRating);
+    } else if (selectedSort === 'ratingCount') {
+      list.sort((a, b) => b.ratingCount - a.ratingCount);
+    } else if (selectedSort === 'name') {
+      list.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return list;
+  }, [filteredPandals, selectedSort]);
+
+  // Pagination for Cast Vote View (20 per page)
+  const castVoteTotalPages = Math.max(1, Math.ceil(sortedCastVotePandals.length / itemsPerPage));
+  const paginatedCastVotePandals = sortedCastVotePandals.slice(
+    (castVotePage - 1) * itemsPerPage,
+    castVotePage * itemsPerPage
+  );
+
+  // Dynamic ranking calculation based on chosen category & filters
+  const rankings: PandalRanking[] = useMemo(() => {
+    return [...filteredPandals].map((p) => {
+      const score = p.avgRating; 
+      const count = p.ratingCount;
+      
+      return {
+        id: `rank_${p.id}`,
+        pandal_id: p.id,
+        season_id: 's_2026',
+        category_id: selectedCatId,
+        category_code: selectedCatId,
+        raw_mean: p.avgRating,
+        bayesian_mean: score,
+        lower_confidence_score: score - 0.2,
+        final_score: score,
+        raw_rating_count: count,
+        effective_sample_size: count,
+        standard_deviation: 0.5,
+        one_star: 1, two_star: 2, three_star: 5, four_star: 15, five_star: count - 23,
+        rank: 0,
+        is_rank_eligible: count >= 10,
+        ranking_version: '2026-v1',
+        calculated_at: new Date().toISOString(),
+        pandal_name: p.name,
+        pandal_slug: p.slug,
+        pandal_image_url: p.image_url,
+        pandal_address: p.address,
+        pandal_zone: p.zone
+      } as any;
+    }).sort((a, b) => {
+      if (Math.abs(b.final_score - a.final_score) > 0.001) return b.final_score - a.final_score;
+      if (Math.abs(b.lower_confidence_score - a.lower_confidence_score) > 0.001) return b.lower_confidence_score - a.lower_confidence_score;
+      if (b.raw_rating_count !== a.raw_rating_count) return b.raw_rating_count - a.raw_rating_count;
+      return a.pandal_id.localeCompare(b.pandal_id);
+    });
+  }, [filteredPandals, selectedCatId]);
 
   // Assign deterministic ranks post-sort
   rankings.forEach((r, idx) => r.rank = idx + 1);
 
-  // Pagination logic
-  const totalPages = Math.ceil(rankings.length / itemsPerPage);
-  const paginatedRankings = rankings.slice((rankingPage - 1) * itemsPerPage, rankingPage * itemsPerPage);
+  // Pagination for Rankings View (20 per page)
+  const rankingTotalPages = Math.max(1, Math.ceil(rankings.length / itemsPerPage));
+  const paginatedRankings = rankings.slice(
+    (rankingPage - 1) * itemsPerPage,
+    rankingPage * itemsPerPage
+  );
 
-  const handleNextPage = () => {
-    if (rankingPage < totalPages) setRankingPage(p => p + 1);
-  };
+  // Reusable Smooth Horizontal Pagination Bar
+  const renderPaginationBar = (currentPage: number, totalPages: number, setPage: (p: number | ((prev: number) => number)) => void) => {
+    const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  const handlePrevPage = () => {
-    if (rankingPage > 1) setRankingPage(p => p - 1);
+    return (
+      <div className="vote-pagination-wrap">
+        {/* Previous Button (Always visible) */}
+        <button
+          type="button"
+          className="vote-pagination-arrow-btn beam-interactive"
+          onClick={() => {
+            setPage((p) => Math.max(1, p - 1));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          disabled={currentPage === 1}
+          title="Previous Page"
+          aria-label="Previous Page"
+        >
+          <ChevronLeft size={18} />
+        </button>
+
+        {/* Scrollable Page Number Pills */}
+        <div className="vote-pagination-numbers-scroll">
+          {pages.map((pNum) => {
+            const isActive = currentPage === pNum;
+            return (
+              <button
+                key={pNum}
+                type="button"
+                className={`vote-page-num-btn beam-interactive ${isActive ? 'is-active' : ''}`}
+                onClick={() => {
+                  setPage(pNum);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                title={`Page ${pNum}`}
+                aria-label={`Page ${pNum}`}
+              >
+                {pNum}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Next Button (Always visible) */}
+        <button
+          type="button"
+          className="vote-pagination-arrow-btn beam-interactive"
+          onClick={() => {
+            setPage((p) => Math.min(totalPages, p + 1));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          disabled={currentPage === totalPages}
+          title="Next Page"
+          aria-label="Next Page"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+    );
   };
 
   return (
     <div className="vote-view-container">
-      {/* Top Search Bar & Filter Drawer Button Row (Heading removed as requested) */}
+      {/* Top Search Bar & Filter Drawer Button Row */}
       <div className="vote-page-search-filter-row">
         {/* Desktop View Switcher Tabs (Desktop Only) */}
         <div className="vote-desktop-switcher">
@@ -199,7 +281,8 @@ export const VoteView: React.FC = () => {
             activeId={voteActiveView}
             onChange={(id) => {
               setVoteActiveView(id as 'cast_vote' | 'pandals_ranking');
-              if (id === 'pandals_ranking') setRankingPage(1);
+              setCastVotePage(1);
+              setRankingPage(1);
             }}
             items={[
               { id: 'cast_vote', label: 'Vote', icon: <Vote size={15} /> },
@@ -219,6 +302,7 @@ export const VoteView: React.FC = () => {
             value={voteSearch}
             onChange={(e) => {
               setVoteSearch(e.target.value);
+              setCastVotePage(1);
               setRankingPage(1);
             }}
           />
@@ -228,6 +312,8 @@ export const VoteView: React.FC = () => {
               className="vote-search-clear-btn"
               onClick={() => {
                 setVoteSearch('');
+                setCastVotePage(1);
+                setRankingPage(1);
                 voteSearchInputRef.current?.focus();
               }}
               title="Clear search"
@@ -238,7 +324,7 @@ export const VoteView: React.FC = () => {
           )}
         </div>
 
-        {/* New Filter Option Button */}
+        {/* Filter Option Button */}
         <button
           type="button"
           className={`vote-filter-trigger-btn beam-interactive ${activeFiltersCount > 0 ? 'is-filtered' : ''}`}
@@ -273,43 +359,48 @@ export const VoteView: React.FC = () => {
       )}
 
       {/* =======================================================================
-          VIEW 1: CAST VOTE (List Pandals to Rate)
+          VIEW 1: CAST VOTE (List Pandals to Rate - 20 Max per Page)
           ======================================================================= */}
       {voteActiveView === 'cast_vote' && (
         <div className="cast-vote-section">
           <div className="nominees-section">
-            {filteredPandals.length > 0 ? (
-              <div className="nominees-grid">
-                {filteredPandals.slice(0, 40).map((pandal) => {
-                  return (
-                    <Card
-                      key={pandal.id}
-                      variant="interactive"
-                      padding="none"
-                      rounded="lg"
-                      className="nominee-compact-card"
-                      onClick={() => setSelectedPandal(pandal)}
-                    >
-                      <img src={pandal.image_url} alt={pandal.name} className="nominee-compact-thumb" />
-                      <div className="nominee-compact-info">
-                        <div className="nominee-title-location-row">
-                          <span className="nominee-name">{pandal.name}</span>
-                          {pandal.address && (
-                            <>
-                              <span className="loc-sep">•</span>
-                              <span className="nominee-location">{pandal.address}</span>
-                            </>
-                          )}
+            {paginatedCastVotePandals.length > 0 ? (
+              <>
+                <div className="nominees-grid">
+                  {paginatedCastVotePandals.map((pandal) => {
+                    return (
+                      <Card
+                        key={pandal.id}
+                        variant="interactive"
+                        padding="none"
+                        rounded="lg"
+                        className="nominee-compact-card"
+                        onClick={() => setSelectedPandal(pandal)}
+                      >
+                        <img src={pandal.image_url} alt={pandal.name} className="nominee-compact-thumb" />
+                        <div className="nominee-compact-info">
+                          <div className="nominee-title-location-row">
+                            <span className="nominee-name">{pandal.name}</span>
+                            {pandal.address && (
+                              <>
+                                <span className="loc-sep">•</span>
+                                <span className="nominee-location">{pandal.address}</span>
+                              </>
+                            )}
+                          </div>
+                          <div className="nominee-stats-row">
+                            <span className="stat-pill"><Star size={12}/> {pandal.avgRating.toFixed(1)}</span>
+                            <span className="stat-pill"><Vote size={12}/> {pandal.ratingCount} Ratings</span>
+                          </div>
                         </div>
-                        <div className="nominee-stats-row">
-                          <span className="stat-pill"><Star size={12}/> {pandal.avgRating.toFixed(1)}</span>
-                          <span className="stat-pill"><Vote size={12}/> {pandal.ratingCount} Ratings</span>
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {/* Always-Visible Organized Pagination for Cast Vote */}
+                {sortedCastVotePandals.length > 0 && renderPaginationBar(castVotePage, castVoteTotalPages, setCastVotePage)}
+              </>
             ) : (
               <div className="nominees-empty-state">
                 <p>No pandals match the selected filters or search query.</p>
@@ -323,6 +414,8 @@ export const VoteView: React.FC = () => {
                     setSelectedDistrict('all');
                     setSelectedHeritage('all');
                     setSelectedVisitedFilter('all');
+                    setCastVotePage(1);
+                    setRankingPage(1);
                   }}
                 >
                   Reset All Filters
@@ -334,7 +427,7 @@ export const VoteView: React.FC = () => {
       )}
 
       {/* =======================================================================
-          VIEW 2: PANDALS RANKING (Statistical Engine Output)
+          VIEW 2: PANDALS RANKING (Statistical Engine Output - 20 Max per Page)
           ======================================================================= */}
       {voteActiveView === 'pandals_ranking' && (
         <div className="ranking-view-section">
@@ -391,51 +484,8 @@ export const VoteView: React.FC = () => {
             })}
           </div>
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="pagination-bar">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="pagination-icon-btn"
-                onClick={handlePrevPage} 
-                disabled={rankingPage === 1}
-              >
-                <ChevronLeft size={16} />
-              </Button>
-              
-              <div className="pagination-numbers">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  // Show pages around current
-                  let pNum = rankingPage - 2 + i;
-                  if (rankingPage <= 3) pNum = i + 1;
-                  if (rankingPage >= totalPages - 2) pNum = totalPages - 4 + i;
-                  if (pNum < 1 || pNum > totalPages) return null;
-                  
-                  return (
-                    <button 
-                      key={pNum}
-                      className={`page-num-btn ${rankingPage === pNum ? 'is-active' : ''}`}
-                      onClick={() => setRankingPage(pNum)}
-                    >
-                      {pNum}
-                    </button>
-                  );
-                })}
-                {totalPages > 5 && rankingPage < totalPages - 2 && <span className="page-ellipsis">...</span>}
-              </div>
-
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="pagination-icon-btn"
-                onClick={handleNextPage}
-                disabled={rankingPage === totalPages}
-              >
-                <ChevronRight size={16} />
-              </Button>
-            </div>
-          )}
+          {/* Always-Visible Organized Pagination for Rankings */}
+          {rankings.length > 0 && renderPaginationBar(rankingPage, rankingTotalPages, setRankingPage)}
         </div>
       )}
 
@@ -834,12 +884,12 @@ export const VoteView: React.FC = () => {
           min-height: 74px;
           cursor: pointer;
           box-sizing: border-box;
-          overflow: hidden;
           transition: all 0.2s ease;
         }
         .nominee-compact-card:hover {
           background: var(--bg-card-subtle);
-          border-color: var(--border-focus);
+          border-color: transparent !important;
+          box-shadow: 0 0 16px var(--beam-glow-color) !important;
         }
         .nominee-compact-thumb {
           width: 58px !important;
@@ -1109,35 +1159,103 @@ export const VoteView: React.FC = () => {
           transform: scale(0.97);
         }
 
-        @keyframes voteSearchExpand {
-          from {
-            opacity: 0;
-            transform: scale(0.96) translateX(10px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateX(0);
-          }
+        /* =========================================================================
+           VOTE PAGE ORGANIZED HORIZONTAL PAGINATION BAR
+           ========================================================================= */
+        .vote-pagination-wrap {
+          display: flex !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 12px !important;
+          margin-top: 24px !important;
+          padding: 12px 0 24px 0 !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
         }
-        @keyframes voteFilterFadeIn {
-          from {
-            opacity: 0;
-            transform: scale(0.97);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
+
+        .vote-pagination-arrow-btn {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          width: 38px !important;
+          height: 38px !important;
+          min-width: 38px !important;
+          max-width: 38px !important;
+          border-radius: var(--radius-full) !important;
+          background: var(--bg-card) !important;
+          border: 1px solid var(--border) !important;
+          color: var(--text-primary) !important;
+          cursor: pointer !important;
+          flex-shrink: 0 !important;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
         }
-        @keyframes voteIconFadeIn {
-          from {
-            opacity: 0;
-            transform: scale(0.85);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
+        .vote-pagination-arrow-btn:hover:not(:disabled) {
+          background: var(--text-primary) !important;
+          color: var(--bg-app) !important;
+          border-color: var(--text-primary) !important;
+          transform: scale(1.05);
+        }
+        .vote-pagination-arrow-btn:active:not(:disabled) {
+          transform: scale(0.95);
+        }
+        .vote-pagination-arrow-btn:disabled {
+          opacity: 0.35 !important;
+          cursor: not-allowed !important;
+          background: var(--bg-card-subtle) !important;
+          color: var(--text-muted) !important;
+        }
+
+        .vote-pagination-numbers-scroll {
+          display: flex !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          gap: 8px !important;
+          overflow-x: auto !important;
+          scrollbar-width: none !important;
+          max-width: 250px !important;
+          padding: 4px 2px !important;
+          box-sizing: border-box !important;
+          -webkit-overflow-scrolling: touch;
+        }
+        .vote-pagination-numbers-scroll::-webkit-scrollbar {
+          display: none !important;
+        }
+
+        .vote-page-num-btn {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          width: 36px !important;
+          height: 36px !important;
+          min-width: 36px !important;
+          max-width: 36px !important;
+          border-radius: var(--radius-full) !important;
+          background: var(--bg-card) !important;
+          border: 1px solid var(--border) !important;
+          color: var(--text-secondary) !important;
+          font-size: 13px !important;
+          font-weight: 600 !important;
+          font-family: var(--font-sans) !important;
+          cursor: pointer !important;
+          flex-shrink: 0 !important;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          -webkit-tap-highlight-color: transparent !important;
+          touch-action: manipulation;
+        }
+        .vote-page-num-btn:hover {
+          border-color: var(--text-primary) !important;
+          color: var(--text-primary) !important;
+        }
+        .vote-page-num-btn.is-active {
+          background: var(--text-primary) !important;
+          color: var(--bg-app) !important;
+          border-color: var(--text-primary) !important;
+          font-weight: 800 !important;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16) !important;
+          transform: scale(1.05);
         }
       `}</style>
     </div>

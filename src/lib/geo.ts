@@ -36,8 +36,16 @@ export function calculateDistanceKm(
 }
 
 /**
- * Formats distance into a human-readable string (e.g. '350 m away' or '1.4 km away')
+ * Formats distance into a concise string without "away" (e.g. '350 m' or '1.4 km')
  */
+export function formatDistanceShort(distanceKm: number): string {
+  if (distanceKm >= 9990) return '--';
+  if (distanceKm < 1) {
+    return `${Math.round(distanceKm * 1000)} m`;
+  }
+  return `${distanceKm.toFixed(1)} km`;
+}
+
 export function formatDistance(distanceKm: number): string {
   if (distanceKm >= 9990) return 'Distance unavailable';
   if (distanceKm < 1) {
@@ -47,8 +55,17 @@ export function formatDistance(distanceKm: number): string {
 }
 
 /**
- * Estimates walking time in minutes based on 4.5 km/h average walking speed
+ * Estimates walking time into a concise string without "walk" (e.g. '~8 min' or '~1h 15m')
  */
+export function estimateWalkingTimeShort(distanceKm: number): string {
+  if (distanceKm >= 9990) return '';
+  const minutes = Math.round((distanceKm / 4.5) * 60);
+  if (minutes < 60) return `~${Math.max(1, minutes)} min`;
+  const hours = Math.floor(minutes / 60);
+  const remMinutes = minutes % 60;
+  return `~${hours}h ${remMinutes}m`;
+}
+
 export function estimateWalkingTime(distanceKm: number): string {
   if (distanceKm >= 9990) return '';
   const minutes = Math.round((distanceKm / 4.5) * 60);

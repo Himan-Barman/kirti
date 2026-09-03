@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../../lib/store';
-import { Button } from '../ui';
+import { Button, Tabs } from '../ui';
 import {
   Navigation,
   MapPin,
@@ -10,14 +10,13 @@ import {
   SlidersHorizontal,
   Star,
   Check,
-  X,
-  ChevronRight
+  X
 } from 'lucide-react';
 import {
   DEFAULT_KOLKATA_CENTER,
   calculateDistanceKm,
-  formatDistance,
-  estimateWalkingTime
+  formatDistanceShort,
+  estimateWalkingTimeShort
 } from '../../lib/geo';
 import type { PandalWithStats } from '../../types/database.types';
 
@@ -35,10 +34,9 @@ export const NearbyView: React.FC = () => {
 
   const [radiusFilter, setRadiusFilter] = useState<string>('5');
   const [customDistanceKm, setCustomDistanceKm] = useState<number>(7);
-  const [tempCustomInput, setTempCustomInput] = useState<string>('7');
+  const [customInputVal, setCustomInputVal] = useState<string>('7');
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
 
-  // Compute distances for all pandals relative to userLocation or DEFAULT_KOLKATA_CENTER
   const activeCoord = userLocation || DEFAULT_KOLKATA_CENTER;
 
   const pandalsWithDistance = useMemo(() => {
@@ -56,7 +54,6 @@ export const NearbyView: React.FC = () => {
     }).sort((a, b) => a.distanceKm - b.distanceKm);
   }, [pandals, activeCoord]);
 
-  // Current active radius limit
   const activeRadiusLimit = useMemo(() => {
     if (radiusFilter === 'all') return Infinity;
     if (radiusFilter.startsWith('custom_')) {
@@ -67,29 +64,27 @@ export const NearbyView: React.FC = () => {
     return isNaN(parsed) ? 5 : parsed;
   }, [radiusFilter]);
 
-  // Filter based on selected radius
   const filteredPandals = useMemo(() => {
     return pandalsWithDistance.filter((p) => p.distanceKm <= activeRadiusLimit);
   }, [pandalsWithDistance, activeRadiusLimit]);
 
-  // Preview count for custom modal
-  const previewCustomCount = useMemo(() => {
-    const dist = parseFloat(tempCustomInput);
-    if (isNaN(dist) || dist <= 0) return 0;
-    return pandalsWithDistance.filter((p) => p.distanceKm <= dist).length;
-  }, [pandalsWithDistance, tempCustomInput]);
+  const customMatchedCount = useMemo(() => {
+    const val = parseFloat(customInputVal);
+    if (isNaN(val) || val <= 0) return 0;
+    return pandalsWithDistance.filter((p) => p.distanceKm <= val).length;
+  }, [pandalsWithDistance, customInputVal]);
 
   const handleTabChange = (tabId: string) => {
     if (tabId === 'custom') {
-      setTempCustomInput(customDistanceKm.toString());
+      setCustomInputVal(customDistanceKm.toString());
       setIsCustomModalOpen(true);
       return;
     }
     setRadiusFilter(tabId);
   };
 
-  const applyCustomDistance = () => {
-    const val = parseFloat(tempCustomInput);
+  const handleApplyCustom = () => {
+    const val = parseFloat(customInputVal);
     if (isNaN(val) || val <= 0) {
       showToast('Please enter a valid positive distance in km', 'error');
       return;
@@ -101,58 +96,59 @@ export const NearbyView: React.FC = () => {
   };
 
   const handleShowOnMap = (pandal: PandalWithStats) => {
+    setSelectedPandal(null);
     setMapHighlightPandalId(pandal.id);
     setShowRouteOnMap(true);
     setMapRadiusKm(activeRadiusLimit === Infinity ? null : activeRadiusLimit);
-    setSelectedPandal(pandal);
     setActiveTab('map');
   };
 
   const isCustomActive = radiusFilter.startsWith('custom_');
+  const activeTabId = isCustomActive ? 'custom' : radiusFilter;
 
   const RADIUS_TABS = [
-    { id: '2', label: 'Within 2 km', icon: <Footprints size={14} /> },
-    { id: '5', label: 'Within 5 km', icon: <Navigation size={14} /> },
-    { id: '10', label: 'Within 10 km', icon: <Compass size={14} /> },
+    { 
+      id: '2', 
+      label: 'Within 2 km', 
+      icon: <Footprints size={14} />,
+      count: radiusFilter === '2' ? filteredPandals.length : undefined 
+    },
+    { 
+      id: '5', 
+      label: 'Within 5 km', 
+      icon: <Navigation size={14} />,
+      count: radiusFilter === '5' ? filteredPandals.length : undefined 
+    },
+    { 
+      id: '10', 
+      label: 'Within 10 km', 
+      icon: <Compass size={14} />,
+      count: radiusFilter === '10' ? filteredPandals.length : undefined 
+    },
     {
       id: 'custom',
       label: isCustomActive ? `Custom (${customDistanceKm} km)` : 'Custom...',
-      icon: <SlidersHorizontal size={14} />
+      icon: <SlidersHorizontal size={14} />,
+      count: isCustomActive ? filteredPandals.length : undefined
     }
   ];
 
   return (
     <div className="nearby-view-container">
-      {/* Distance Radius Filter Tabs Bar */}
-      <div className="nearby-filter-header-row">
-        <div className="nearby-filter-pills-scroll">
-          {RADIUS_TABS.map((tab) => {
-            const isActive = tab.id === radiusFilter || (tab.id === 'custom' && isCustomActive);
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                className={`nearby-pill-btn beam-interactive ${isActive ? 'is-active' : ''}`}
-                onClick={() => handleTabChange(tab.id)}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <span className="nearby-count-pill">
-          {filteredPandals.length} Pandals Found
-        </span>
+      <div className="category-tabs-wrap" style={{ overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+        <Tabs
+          variant="pills"
+          activeId={activeTabId}
+          onChange={(id) => handleTabChange(id)}
+          items={RADIUS_TABS}
+        />
       </div>
 
-      {/* List of Nearby Pandals in Horizontal Compact Bar Layout */}
       {filteredPandals.length > 0 ? (
         <div className="nearby-pandal-bars-list">
           {filteredPandals.map((pandal) => {
-            const distFormatted = formatDistance(pandal.distanceKm);
-            const walkEst = estimateWalkingTime(pandal.distanceKm);
+            const distFormatted = formatDistanceShort(pandal.distanceKm);
+            const walkEst = estimateWalkingTimeShort(pandal.distanceKm);
 
             return (
               <div
@@ -168,15 +164,15 @@ export const NearbyView: React.FC = () => {
                   loading="lazy"
                 />
 
-                {/* Middle Info Column */}
+                {/* Middle Info Column: Exactly 3 Rows */}
                 <div className="nearby-bar-info">
-                  {/* Row 1: Name */}
+                  {/* Row 1: Pandal Name */}
                   <h3 className="nearby-bar-name" title={pandal.name}>
                     {pandal.name}
                   </h3>
 
-                  {/* Row 2: Distance & Walking Time Badges */}
-                  <div className="nearby-bar-meta-row">
+                  {/* Row 2: Distance & Walk Time (Without 'away' and 'walk') */}
+                  <div className="nearby-bar-row2">
                     <span className="nearby-dist-badge">
                       <Navigation size={11} className="dist-icon" />
                       {distFormatted}
@@ -187,34 +183,38 @@ export const NearbyView: React.FC = () => {
                         {walkEst}
                       </span>
                     )}
-                    <span className="nearby-rating-badge">
-                      <Star size={11} className="text-gold" />
-                      {pandal.avgRating.toFixed(1)}
-                    </span>
                   </div>
 
-                  {/* Row 3: Address / Location */}
-                  {pandal.address && (
-                    <p className="nearby-bar-address" title={pandal.address}>
-                      {pandal.address}
-                    </p>
-                  )}
+                  {/* Row 3: Rating & Address */}
+                  <div className="nearby-bar-row3">
+                    <span className="nearby-rating-badge">
+                      <Star size={11} className="text-gold fill-gold" />
+                      {pandal.avgRating.toFixed(1)}
+                    </span>
+                    {pandal.address && (
+                      <>
+                        <span className="nearby-dot-sep">•</span>
+                        <span className="nearby-bar-address" title={pandal.address}>
+                          {pandal.address}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
 
-                {/* Right Side: Show on Map Route Button */}
+                {/* Right Side: Location (Map Page) Button */}
                 <button
                   type="button"
-                  className="nearby-show-map-btn beam-interactive"
+                  className="nearby-location-btn beam-interactive"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleShowOnMap(pandal);
                   }}
-                  title={`View route to ${pandal.name} on Interactive Map`}
-                  aria-label="Show on Map"
+                  title={`View ${pandal.name} on Map`}
+                  aria-label="View on Map"
                 >
-                  <MapPin size={14} className="text-red" />
-                  <span>Show Map</span>
-                  <ChevronRight size={13} className="chevron-arrow" />
+                  <MapPin size={14} className="location-pin-icon" />
+                  <span>Location</span>
                 </button>
               </div>
             );
@@ -234,7 +234,7 @@ export const NearbyView: React.FC = () => {
             size="md"
             rounded="full"
             onClick={() => {
-              setTempCustomInput('25');
+              setCustomInputVal('25');
               setCustomDistanceKm(25);
               setRadiusFilter('custom_25');
             }}
@@ -279,8 +279,8 @@ export const NearbyView: React.FC = () => {
                   max="100"
                   step="0.5"
                   className="custom-km-input"
-                  value={tempCustomInput}
-                  onChange={(e) => setTempCustomInput(e.target.value)}
+                  value={customInputVal}
+                  onChange={(e) => setCustomInputVal(e.target.value)}
                   placeholder="e.g. 7.5"
                   autoFocus
                 />
@@ -296,8 +296,8 @@ export const NearbyView: React.FC = () => {
                   <button
                     key={preset}
                     type="button"
-                    className={`preset-pill-btn ${tempCustomInput === preset ? 'active' : ''}`}
-                    onClick={() => setTempCustomInput(preset)}
+                    className={`preset-pill-btn ${customInputVal === preset ? 'active' : ''}`}
+                    onClick={() => setCustomInputVal(preset)}
                   >
                     {preset} km
                   </button>
@@ -309,8 +309,8 @@ export const NearbyView: React.FC = () => {
             <div className="match-preview-pill">
               <MapPin size={13} className="text-red" />
               <span>
-                <strong>{previewCustomCount} pandals</strong> found within{' '}
-                {tempCustomInput || 0} km of your position
+                <strong>{customMatchedCount} pandals</strong> found within{' '}
+                {customInputVal || 0} km of your position
               </span>
             </div>
 
@@ -326,7 +326,7 @@ export const NearbyView: React.FC = () => {
               <button
                 type="button"
                 className="modal-proceed-btn beam-interactive"
-                onClick={applyCustomDistance}
+                onClick={handleApplyCustom}
               >
                 <Check size={16} />
                 <span>Apply Distance</span>
@@ -348,7 +348,7 @@ export const NearbyView: React.FC = () => {
         }
         @media (max-width: 768px) {
           .nearby-view-container {
-            padding: 8px 12px 90px 12px;
+            padding: 8px 16px 90px 16px;
             gap: 14px;
           }
         }
@@ -357,9 +357,14 @@ export const NearbyView: React.FC = () => {
         .nearby-filter-header-row {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          flex-wrap: wrap;
+          gap: 8px;
+          overflow-x: auto;
+          scrollbar-width: none;
+          padding-bottom: 2px;
+          width: 100%;
+        }
+        .nearby-filter-header-row::-webkit-scrollbar {
+          display: none;
         }
 
         .nearby-filter-pills-scroll {
@@ -368,7 +373,6 @@ export const NearbyView: React.FC = () => {
           gap: 8px;
           overflow-x: auto;
           scrollbar-width: none;
-          padding-bottom: 2px;
           flex: 1;
         }
         .nearby-filter-pills-scroll::-webkit-scrollbar {
@@ -379,36 +383,52 @@ export const NearbyView: React.FC = () => {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 7px 14px;
+          padding: 8px 16px;
           border-radius: var(--radius-full);
-          background: var(--bg-card);
           border: 1px solid var(--border);
+          background: var(--bg-card);
           color: var(--text-secondary);
-          font-size: 12.5px;
+          font-size: 13px;
           font-weight: 600;
           cursor: pointer;
           white-space: nowrap;
-          transition: all 0.2s ease;
+          transition: all 0.18s ease;
+          font-family: var(--font-sans);
           -webkit-tap-highlight-color: transparent !important;
           touch-action: manipulation;
         }
         .nearby-pill-btn:hover {
+          border-color: var(--text-primary);
           color: var(--text-primary);
-          background: var(--bg-card-subtle);
-          border-color: var(--border-focus);
         }
         .nearby-pill-btn.is-active {
           background: var(--text-primary);
-          color: var(--bg-card);
+          color: var(--bg-app);
           border-color: var(--text-primary);
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
           font-weight: 700;
         }
 
-        .nearby-count-pill {
-          font-size: 12px;
-          font-weight: 700;
-          color: var(--text-muted);
-          white-space: nowrap;
+        .nearby-pill-count-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 20px;
+          height: 20px;
+          padding: 0 6px;
+          border-radius: var(--radius-full);
+          background: var(--kirti-red);
+          color: #ffffff;
+          font-size: 11px;
+          font-weight: 800;
+          line-height: 1;
+          margin-left: 4px;
+          box-shadow: 0 2px 6px rgba(180, 35, 42, 0.4);
+          animation: badgePopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes badgePopIn {
+          from { transform: scale(0.6); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
         }
 
         /* Horizontal Pandal Bar Layout */
@@ -432,11 +452,11 @@ export const NearbyView: React.FC = () => {
           box-sizing: border-box;
           transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
-          overflow: hidden;
         }
         .nearby-pandal-bar:hover {
           background: var(--bg-card-subtle);
-          border-color: var(--border-focus);
+          border-color: transparent !important;
+          box-shadow: 0 0 16px var(--beam-glow-color) !important;
           transform: translateY(-1px);
         }
         .nearby-pandal-bar:active {
@@ -459,11 +479,12 @@ export const NearbyView: React.FC = () => {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          gap: 4px;
+          gap: 3px;
           flex: 1;
           min-width: 0;
         }
 
+        /* Row 1: Name */
         .nearby-bar-name {
           font-size: 14.5px;
           font-weight: 700;
@@ -472,13 +493,15 @@ export const NearbyView: React.FC = () => {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          line-height: 1.25;
         }
 
-        .nearby-bar-meta-row {
+        /* Row 2: Distance & Walk Time */
+        .nearby-bar-row2 {
           display: flex;
           align-items: center;
           gap: 6px;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
         }
 
         .nearby-dist-badge {
@@ -492,6 +515,7 @@ export const NearbyView: React.FC = () => {
           color: var(--kirti-red);
           font-size: 11px;
           font-weight: 700;
+          white-space: nowrap;
         }
         .dist-icon {
           color: var(--kirti-red);
@@ -508,6 +532,18 @@ export const NearbyView: React.FC = () => {
           color: var(--text-secondary);
           font-size: 11px;
           font-weight: 600;
+          white-space: nowrap;
+        }
+
+        /* Row 3: Rating & Address */
+        .nearby-bar-row3 {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 11.5px;
+          color: var(--text-muted);
+          min-width: 0;
+          overflow: hidden;
         }
 
         .nearby-rating-badge {
@@ -517,6 +553,14 @@ export const NearbyView: React.FC = () => {
           font-size: 11px;
           font-weight: 700;
           color: var(--text-secondary);
+          flex-shrink: 0;
+        }
+
+        .nearby-dot-sep {
+          color: var(--text-muted);
+          opacity: 0.6;
+          font-size: 10px;
+          flex-shrink: 0;
         }
 
         .nearby-bar-address {
@@ -526,13 +570,16 @@ export const NearbyView: React.FC = () => {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          min-width: 0;
+          flex: 1;
         }
 
-        .nearby-show-map-btn {
+        /* Right Side: Location Button */
+        .nearby-location-btn {
           display: inline-flex;
           align-items: center;
           gap: 5px;
-          padding: 8px 13px;
+          padding: 8px 14px;
           border-radius: var(--radius-full);
           background: var(--bg-card-subtle);
           border: 1px solid var(--border);
@@ -542,49 +589,43 @@ export const NearbyView: React.FC = () => {
           cursor: pointer;
           white-space: nowrap;
           flex-shrink: 0;
-          transition: all 0.2s ease;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           -webkit-tap-highlight-color: transparent !important;
           touch-action: manipulation;
         }
-        .nearby-show-map-btn:hover {
+        .nearby-location-btn:hover {
           background: var(--text-primary);
           color: var(--bg-app);
           border-color: var(--text-primary);
           transform: translateY(-1px);
         }
-        .nearby-show-map-btn:active {
+        .nearby-location-btn:active {
           transform: scale(0.95);
         }
-        .chevron-arrow {
-          color: var(--text-muted);
-          transition: transform 0.2s ease;
+        .location-pin-icon {
+          color: var(--kirti-red);
+          transition: color 0.15s ease;
         }
-        .nearby-show-map-btn:hover .chevron-arrow {
+        .nearby-location-btn:hover .location-pin-icon {
           color: var(--bg-app);
-          transform: translateX(2px);
         }
 
         @media (max-width: 600px) {
           .nearby-pandal-bar {
-            padding: 8px 10px;
+            padding: 9px 10px;
             gap: 10px;
-            min-height: 72px;
+            min-height: 74px;
           }
           .nearby-bar-thumb {
-            width: 54px;
-            height: 54px;
-            min-width: 54px;
-            max-width: 54px;
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            max-width: 56px;
           }
-          .nearby-show-map-btn {
+          .nearby-location-btn {
             padding: 6px 10px;
             font-size: 11.5px;
-          }
-          .nearby-show-map-btn span {
-            display: none;
-          }
-          .nearby-show-map-btn::after {
-            content: "Map";
+            gap: 4px;
           }
         }
 

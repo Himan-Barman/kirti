@@ -29,7 +29,6 @@ export const Card: React.FC<CardProps> = ({
           box-shadow: var(--shadow-sm);
           position: relative;
           -webkit-tap-highlight-color: transparent !important;
-          overflow: hidden;
           transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
         }
 

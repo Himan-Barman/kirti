@@ -176,18 +176,18 @@ export const Tabs: React.FC<TabsProps> = ({
           align-items: center;
           gap: 6px;
           white-space: nowrap;
+          flex-shrink: 0;
           transition: all 0.18s ease;
           font-family: var(--font-sans);
           -webkit-tap-highlight-color: transparent !important;
           touch-action: manipulation;
         }
         .tabs-pills .tab-btn:hover {
-          border-color: var(--text-primary);
+          border-color: transparent !important;
           color: var(--text-primary);
+          box-shadow: 0 0 14px var(--beam-glow-color) !important;
         }
         .tabs-pills .tab-btn:active {
-          transform: scale(0.95);
-        }
           transform: scale(0.95);
         }
         .tabs-pills .tab-btn.is-active {
@@ -199,14 +199,22 @@ export const Tabs: React.FC<TabsProps> = ({
 
         .tab-badge {
           font-size: 11px;
-          padding: 1px 6px;
+          font-weight: 800;
+          padding: 2px 7px;
           border-radius: var(--radius-full);
           background: var(--bg-card-subtle);
           color: var(--text-muted);
+          line-height: 1;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          margin-left: 3px;
+          flex-shrink: 0;
         }
         .tab-btn.is-active .tab-badge {
           background: var(--kirti-red);
           color: #ffffff;
+          box-shadow: 0 2px 6px rgba(180, 35, 42, 0.4);
         }
       `}</style>
     </div>

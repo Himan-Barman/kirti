@@ -315,14 +315,16 @@ export const PandalMap: React.FC = () => {
       <div className="pandal-map-wrapper">
         <div ref={mapContainerRef} className="leaflet-map-canvas" />
 
-        {/* Dynamic Match Count Indicator Pill */}
-        <div className="map-floating-counter-badge">
-          <span className="counter-dot"></span>
-          <span>
-            {filteredPandals.length} Pandals on Map
-            {mapRadiusKm ? ` (Within ${mapRadiusKm} km)` : ''}
-          </span>
-        </div>
+        {/* Dynamic Match Count Indicator Pill (Hidden when Route Banner is active) */}
+        {!showRouteOnMap && (
+          <div className="map-floating-counter-badge">
+            <span className="counter-dot"></span>
+            <span>
+              {filteredPandals.length} Pandals on Map
+              {mapRadiusKm ? ` (Within ${mapRadiusKm} km)` : ''}
+            </span>
+          </div>
+        )}
 
         {/* Floating Route Information Banner (When routed to a specific pandal) */}
         {showRouteOnMap && highlightedRoutePandal && (
@@ -334,7 +336,7 @@ export const PandalMap: React.FC = () => {
               <div className="route-banner-details">
                 <span className="route-banner-title">{highlightedRoutePandal.name}</span>
                 <span className="route-banner-subtitle">
-                  {formatDistance(targetDistanceKm)} away
+                  {formatDistance(targetDistanceKm)}
                   {estimateWalkingTime(targetDistanceKm) ? ` • ${estimateWalkingTime(targetDistanceKm)}` : ''}
                 </span>
               </div>
