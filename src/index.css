@@ -410,7 +410,8 @@ p {
 .nearby-pandal-bar:hover::after,
 .nominee-compact-card:hover::after,
 .ranking-card:hover::after,
-.beam-interactive:hover::after {
+.beam-interactive:hover::after,
+.beam-interactive:focus-within::after {
   opacity: 1;
 }
 
@@ -435,7 +436,8 @@ p {
 .nearby-pandal-bar:hover,
 .nominee-compact-card:hover,
 .ranking-card:hover,
-.beam-interactive:hover {
+.beam-interactive:hover,
+.beam-interactive:focus-within {
   border-color: transparent !important;
   box-shadow: 0 0 16px var(--beam-glow-color) !important;
 }

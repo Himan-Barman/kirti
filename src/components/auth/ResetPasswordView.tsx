@@ -54,7 +54,11 @@ export const ResetPasswordView: React.FC = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">KIRTI</h1>
+        <div className="auth-brand-logo" onClick={() => setActiveTab('discover')}>
+          <span className="logo-text">KIRTI</span>
+          <span className="logo-dot"></span>
+          <span className="logo-bengali-mark">কীর্তি</span>
+        </div>
         
         {success ? (
           <>
