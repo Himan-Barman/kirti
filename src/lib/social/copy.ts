@@ -175,18 +175,18 @@ export const generateShareCopy = (data: ShareData, platform?: SocialPlatform): S
 
     case 'app': {
       const url = data.url || 'https://aabesh.vercel.app';
-      const title = data.title || 'aabesh (আবেশ) — Kolkata Durga Puja Discovery, Ratings & Social Trails';
-      const description = data.description || 'Discover Kolkata\'s Durga Puja pandals, explore live community ratings across 5 craft dimensions, track your visited pandals, and follow friends\' Puja trails.';
+      const title = data.title || 'aabesh (আবেশ) — Durga Puja Discovery, Ratings & Social Trails';
+      const description = data.description || 'Discover Durga Puja pandals, explore live community ratings across 5 craft dimensions, track your visited pandals, and follow friends\' Puja trails.';
 
       let shareText = '';
       if (platform === 'whatsapp_message') {
-        shareText = `Discover Kolkata's most magnificent Durga Puja pandals on aabesh!\n\nExplore 5-dimension craft ratings, interactive map & track your visited pandals with friends:`;
+        shareText = `Discover the most magnificent Durga Puja pandals on aabesh!\n\nExplore 5-dimension craft ratings, interactive map & track your visited pandals with friends:`;
       } else if (platform === 'twitter') {
-        shareText = `Experience Kolkata's Durga Puja like never before on @aabesh_app.\n\nDiscover pandals, rate craftsmanship, and explore friends' Puja trails:`;
+        shareText = `Experience Durga Puja like never before on @aabesh_app.\n\nDiscover pandals, rate craftsmanship, and explore friends' Puja trails:`;
       } else if (platform === 'linkedin') {
-        shareText = `Aabesh (আবেশ) — The digital platform for Kolkata Durga Puja discovery, architectural & idol craftsmanship ratings, and social exploration.`;
+        shareText = `Aabesh (আবেশ) — The digital platform for Durga Puja discovery, architectural & idol craftsmanship ratings, and social exploration.`;
       } else {
-        shareText = `Discover Kolkata's Durga Puja pandals, community ratings and friend trails on aabesh:`;
+        shareText = `Discover Durga Puja pandals, community ratings and friend trails on aabesh:`;
       }
 
       return {
@@ -194,7 +194,7 @@ export const generateShareCopy = (data: ShareData, platform?: SocialPlatform): S
         description,
         shareText,
         url,
-        hashtags: ['Aabesh', 'DurgaPuja2026', 'Kolkata', 'BengalHeritage']
+        hashtags: ['Aabesh', 'DurgaPuja2026', 'BengalHeritage']
       };
     }
   }

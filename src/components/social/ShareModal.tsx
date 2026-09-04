@@ -5,7 +5,9 @@ import { sanitizeShareDataForPrivacy, isShareAllowedByPrivacy } from '../../lib/
 import {
   renderSocialAssetToDataURL,
   downloadSocialAsset,
-  shareSocialAssetWithWebShare
+  shareSocialAssetWithWebShare,
+  dataURLToBlob,
+  downloadBlob
 } from '../../lib/social/canvasRenderer';
 import { useStore } from '../../lib/store';
 import {
@@ -105,7 +107,12 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, data })
 
   const handleDownloadAsset = async (format: SocialAssetFormat) => {
     try {
-      showToast('Generating high-resolution asset...', 'info');
+      if (previewDataUrl) {
+        const blob = dataURLToBlob(previewDataUrl);
+        downloadBlob(blob, `aabesh-${cleanData.type}-${format.split('_')[0]}.png`);
+        showToast('Downloaded visual asset', 'success');
+        return;
+      }
       await downloadSocialAsset(cleanData, format);
       showToast('Downloaded visual asset', 'success');
     } catch (err) {
@@ -116,24 +123,30 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, data })
 
   const handleWebShareFile = async (format: SocialAssetFormat) => {
     try {
-      showToast('Preparing share...', 'info');
-      const result = await shareSocialAssetWithWebShare(cleanData, format, {
-        title: copyPayload.title,
-        text: copyPayload.shareText,
-        url: copyPayload.url
-      });
+      const existingBlob = previewDataUrl ? dataURLToBlob(previewDataUrl) : undefined;
+      const result = await shareSocialAssetWithWebShare(
+        cleanData,
+        format,
+        {
+          title: copyPayload.title,
+          text: copyPayload.shareText,
+          url: copyPayload.url
+        },
+        existingBlob
+      );
 
       if (result === 'shared_file' || result === 'shared_text') {
         showToast('Shared successfully', 'success');
       } else if (result === 'downloaded') {
-        showToast('Image saved to device & link copied!', 'success');
+        showToast('Image saved & link copied!', 'success');
       }
     } catch (err) {
       console.error('Share action error:', err);
-      try {
-        await downloadSocialAsset(cleanData, format);
+      if (previewDataUrl) {
+        const blob = dataURLToBlob(previewDataUrl);
+        downloadBlob(blob, `aabesh-${cleanData.type}-${format.split('_')[0]}.png`);
         showToast('Image saved to device', 'success');
-      } catch {
+      } else {
         handleCopyLink();
       }
     }
@@ -164,8 +177,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, data })
                 {cleanData.type === 'rating' && `5-Dimension Rating for ${cleanData.pandal.name}`}
                 {cleanData.type === 'visit' && `Checked in at ${cleanData.pandal.name}`}
                 {cleanData.type === 'journey' && 'My Durga Puja Trail'}
-                {cleanData.type === 'ranking' && `Kolkata's Most Loved Pandals (${cleanData.categoryName})`}
-                {cleanData.type === 'app' && 'Discover Kolkata Pandals, Ratings & Live Trails'}
+                {cleanData.type === 'ranking' && `Most Loved Pandals (${cleanData.categoryName})`}
+                {cleanData.type === 'app' && 'Discover Pandals, Ratings & Live Trails'}
               </p>
             </div>
           </div>
@@ -193,7 +206,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, data })
             onClick={() => setActiveTab('story')}
           >
             <Smartphone size={14} />
-            <span>Instagram Story (9:16)</span>
+            <span>Instagram Story</span>
           </button>
 
           <button
@@ -320,6 +333,31 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, data })
                   </div>
                   <span className="platform-btn-label">Telegram</span>
                 </button>
+
+                {/* Direct Share (Device Share Sheet) */}
+                {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
+                  <button
+                    className="quick-share-btn"
+                    onClick={async () => {
+                      try {
+                        await navigator.share({
+                          title: copyPayload.title,
+                          text: `${copyPayload.shareText}\n${copyPayload.url}`
+                        });
+                        showToast('Shared successfully', 'success');
+                      } catch (err: any) {
+                        if (err.name !== 'AbortError') {
+                          handleCopyLink();
+                        }
+                      }
+                    }}
+                  >
+                    <div className="platform-icon-circle" style={{ background: 'linear-gradient(135deg, #B4232A 0%, #D43840 100%)', color: '#FFF' }}>
+                      <Share2 size={20} />
+                    </div>
+                    <span className="platform-btn-label">Direct Share</span>
+                  </button>
+                )}
               </div>
 
               {/* Copy Link Bar Box */}

@@ -248,13 +248,13 @@ export const DevSocialPreviewStudio: React.FC<DevSocialPreviewStudioProps> = ({ 
               className={`dev-format-tab-btn ${activeFormat === 'story_1080x1920' ? 'active' : ''}`}
               onClick={() => setActiveFormat('story_1080x1920')}
             >
-              Instagram Story (9:16)
+              Instagram Story
             </button>
             <button
               className={`dev-format-tab-btn ${activeFormat === 'status_1080x1920' ? 'active' : ''}`}
               onClick={() => setActiveFormat('status_1080x1920')}
             >
-              WhatsApp Status (9:16)
+              WhatsApp Status
             </button>
             <button
               className={`dev-format-tab-btn ${activeFormat === 'feed_1080x1350' ? 'active' : ''}`}

@@ -17,13 +17,26 @@ const loadImage = (src: string): Promise<HTMLImageElement | null> => {
 
   return new Promise((resolve) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    if (src.startsWith('http://') || src.startsWith('https://')) {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload = () => {
       imageCache.set(src, img);
       resolve(img);
     };
     img.onerror = () => {
-      resolve(null);
+      // Retry once without crossOrigin in case CORS header was missing on local/static assets
+      if (img.crossOrigin) {
+        const retryImg = new Image();
+        retryImg.onload = () => {
+          imageCache.set(src, retryImg);
+          resolve(retryImg);
+        };
+        retryImg.onerror = () => resolve(null);
+        retryImg.src = src;
+      } else {
+        resolve(null);
+      }
     };
     img.src = src;
   });
@@ -77,57 +90,6 @@ const getWrappedLines = (
     lines.push(currentLine);
   }
   return lines;
-};
-
-/**
- * Main social asset rendering dispatcher
- */
-export const renderSocialAsset = async (
-  data: ShareData,
-  format: SocialAssetFormat = 'og_1200x630'
-): Promise<HTMLCanvasElement> => {
-  // Wait for Google Fonts to be ready for sharp rendering
-  if (typeof document !== 'undefined' && document.fonts) {
-    try {
-      await document.fonts.ready;
-    } catch {}
-  }
-
-  const { width, height } = FORMAT_DIMENSIONS[format];
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Failed to get canvas 2D context');
-
-  // Enable high-quality image smoothing
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-
-  // Base background fill (Rich Dark Charcoal: #0A0A0A)
-  ctx.fillStyle = '#0A0A0A';
-  ctx.fillRect(0, 0, width, height);
-
-  switch (format) {
-    case 'story_1080x1920':
-      await renderInstagramStory(ctx, data, width, height);
-      break;
-    case 'status_1080x1920':
-      await renderWhatsAppStatus(ctx, data, width, height);
-      break;
-    case 'feed_1080x1350':
-      await renderInstagramFeed(ctx, data, width, height);
-      break;
-    case 'square_1080x1080':
-      await renderSquarePost(ctx, data, width, height);
-      break;
-    case 'og_1200x630':
-    default:
-      await renderOpenGraphCard(ctx, data, width, height);
-      break;
-  }
-
-  return canvas;
 };
 
 /* =========================================================================
@@ -408,11 +370,11 @@ const renderOpenGraphCard = async (
 
     ctx.font = '800 32px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText('Discover Kolkata Pandals & Live Trails', contentX, currY);
+    ctx.fillText('Discover Pandals & Live Trails', contentX, currY);
     currY += 38;
     ctx.font = '600 20px "Tiro Bangla", serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.fillText('কলকাতার সেরা দুর্গাপূজা পরিক্রমা ও মূল্যায়ন', contentX, currY);
+    ctx.fillText('সেরা দুর্গাপূজা পরিক্রমা ও মূল্যায়ন', contentX, currY);
 
     currY += 36;
 
@@ -454,6 +416,17 @@ const renderInstagramStory = async (
   let img: HTMLImageElement | null = null;
   if ('pandal' in data && data.pandal) {
     img = await loadImage(data.pandal.image_url);
+  } else if (data.type === 'app') {
+    img = await loadImage(data.heroImage || '/durga-portrait.jpg');
+  } else if (data.type === 'journey' && data.visitedPandals.length > 0) {
+    img = await loadImage(data.visitedPandals[0].image_url || '/durga-portrait.jpg');
+  } else if (data.type === 'ranking' && data.topPandals.length > 0) {
+    img = await loadImage(data.topPandals[0].pandal.image_url || '/durga-portrait.jpg');
+  }
+
+  // Guaranteed fallback to high-res festive artwork
+  if (!img) {
+    img = await loadImage('/durga-portrait.jpg');
   }
 
   // Full-bleed photograph background
@@ -575,15 +548,15 @@ const renderInstagramStory = async (
     ctx.fillStyle = '#C9A227';
     ctx.fillText('THE DURGA PUJA NETWORK', w / 2, centerY - 32);
 
-    ctx.font = '800 50px "Plus Jakarta Sans", sans-serif';
+    ctx.font = '800 52px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText('Discover Kolkata Pandals.', w / 2, centerY + 30);
+    ctx.fillText('Discover Pandals.', w / 2, centerY + 30);
     ctx.fillText('Rate Authentic Craft.', w / 2, centerY + 94);
     ctx.fillText('Track Friend Trails.', w / 2, centerY + 158);
 
     ctx.font = '600 26px "Tiro Bangla", serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.fillText('কলকাতার পুজো পরিক্রমা ও লাইভ রেটিং', w / 2, centerY + 224);
+    ctx.fillText('পুজো পরিক্রমা ও লাইভ রেটিং', w / 2, centerY + 224);
 
     const ctaY = h - 280;
     ctx.fillStyle = 'rgba(180, 35, 42, 0.95)';
@@ -744,11 +717,11 @@ const renderWhatsAppStatus = async (
 
     ctx.font = '800 44px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText('Kolkata Durga Puja 2026', w / 2, bottomY + 54);
+    ctx.fillText('Durga Puja 2026', w / 2, bottomY + 54);
 
     ctx.font = '600 24px "Tiro Bangla", serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-    ctx.fillText('কলকাতার সবচেয়ে প্রাণবন্ত পুজো পরিক্রমা', w / 2, bottomY + 100);
+    ctx.fillText('সবচেয়ে প্রাণবন্ত পুজো পরিক্রমা', w / 2, bottomY + 100);
 
     ctx.font = '600 17px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
@@ -905,7 +878,7 @@ const renderInstagramFeed = async (
 
     ctx.font = '600 22px "Tiro Bangla", serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-    ctx.fillText('কলকাতার পুজো পরিক্রমা, খাঁটি মূল্যায়ন ও বন্ধুবান্ধব', 64, cardY + 164);
+    ctx.fillText('সেরা পুজো পরিক্রমা, খাঁটি মূল্যায়ন ও বন্ধুবান্ধব', 64, cardY + 164);
 
     ctx.font = '600 15px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = '#C9A227';
@@ -1023,12 +996,12 @@ const renderSquarePost = async (
 
     ctx.font = '800 36px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText('Discover Kolkata Pandals', rx, 270);
+    ctx.fillText('Discover Pandals', rx, 270);
     ctx.fillText('& Live Community Ratings', rx, 318);
 
     ctx.font = '600 20px "Tiro Bangla", serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-    ctx.fillText('কলকাতার সেরা পুজো পরিক্রমা', rx, 370);
+    ctx.fillText('সেরা পুজো পরিক্রমা', rx, 370);
 
     ctx.font = '600 15px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
@@ -1140,9 +1113,90 @@ const renderJourneyLayout = (
   ctx.fillText('Track your own festive journey on aabesh.vercel.app', w / 2, h - 40);
 };
 
+let fontsReadyPromise: Promise<any> | null = null;
+const ensureFontsReady = (): Promise<any> => {
+  if (fontsReadyPromise) return fontsReadyPromise;
+  if (typeof document !== 'undefined' && document.fonts) {
+    fontsReadyPromise = document.fonts.ready.catch(() => {});
+  } else {
+    fontsReadyPromise = Promise.resolve();
+  }
+  return fontsReadyPromise;
+};
+
+/**
+ * Main social asset rendering dispatcher
+ */
+export const renderSocialAsset = async (
+  data: ShareData,
+  format: SocialAssetFormat = 'og_1200x630'
+): Promise<HTMLCanvasElement> => {
+  // Wait for Google Fonts once for sharp rendering
+  await ensureFontsReady();
+
+  const { width, height } = FORMAT_DIMENSIONS[format];
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to get canvas 2D context');
+
+  // Enable high-quality image smoothing
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  // Base background fill (Rich Dark Charcoal: #0A0A0A)
+  ctx.fillStyle = '#0A0A0A';
+  ctx.fillRect(0, 0, width, height);
+
+  switch (format) {
+    case 'story_1080x1920':
+      await renderInstagramStory(ctx, data, width, height);
+      break;
+    case 'status_1080x1920':
+      await renderWhatsAppStatus(ctx, data, width, height);
+      break;
+    case 'feed_1080x1350':
+      await renderInstagramFeed(ctx, data, width, height);
+      break;
+    case 'square_1080x1080':
+      await renderSquarePost(ctx, data, width, height);
+      break;
+    case 'og_1200x630':
+    default:
+      await renderOpenGraphCard(ctx, data, width, height);
+      break;
+  }
+
+  return canvas;
+};
+
 /* =========================================================================
-   PUBLIC EXPORT UTILITIES
+   PUBLIC EXPORT UTILITIES (INSTANT 0MS PERFORMANCE)
    ========================================================================= */
+
+export const dataURLToBlob = (dataUrl: string): Blob => {
+  const arr = dataUrl.split(',');
+  const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+};
+
+export const downloadBlob = (blob: Blob, filename?: string): void => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename || `aabesh-share-${Date.now()}.png`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+};
 
 export const renderSocialAssetToBlob = async (
   data: ShareData,
@@ -1171,24 +1225,18 @@ export const downloadSocialAsset = async (
   filename?: string
 ): Promise<void> => {
   const blob = await renderSocialAssetToBlob(data, format);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
   const defaultName = `aabesh-${data.type}-${format.split('_')[0]}-${Date.now()}.png`;
-  a.download = filename || defaultName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  downloadBlob(blob, filename || defaultName);
 };
 
 export const shareSocialAssetWithWebShare = async (
   data: ShareData,
   format: SocialAssetFormat,
-  sharePayload: { title: string; text: string; url: string }
+  sharePayload: { title: string; text: string; url: string },
+  precomputedBlob?: Blob
 ): Promise<'shared_file' | 'shared_text' | 'downloaded'> => {
   try {
-    const blob = await renderSocialAssetToBlob(data, format);
+    const blob = precomputedBlob || (await renderSocialAssetToBlob(data, format));
     const file = new File([blob], `aabesh-${format.split('_')[0]}.png`, { type: 'image/png' });
 
     if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
@@ -1223,8 +1271,12 @@ export const shareSocialAssetWithWebShare = async (
     console.warn('Render to blob error:', renderErr);
   }
 
-  // 3. Robust Fallback (Desktop / non-HTTPS / unsupported): Download asset to device gallery and copy link
-  await downloadSocialAsset(data, format);
+  // 3. Fallback: Download asset to device gallery and copy link
+  if (precomputedBlob) {
+    downloadBlob(precomputedBlob, `aabesh-${data.type}-${format.split('_')[0]}.png`);
+  } else {
+    await downloadSocialAsset(data, format);
+  }
   try {
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(sharePayload.url);

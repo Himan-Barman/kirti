@@ -186,9 +186,9 @@ export const LandingShowcase: React.FC = () => {
                   openShareModal({
                     type: 'app',
                     url: 'https://aabesh.vercel.app',
-                    title: 'aabesh (আবেশ) — Kolkata Durga Puja Discovery, Ratings & Social Trails',
+                    title: 'aabesh (আবেশ) — Durga Puja Discovery, Ratings & Social Trails',
                     description:
-                      'Discover Kolkata Durga Puja pandals, explore live community ratings across 5 craft dimensions, track your visited pandals, and follow friends’ Puja trails.'
+                      'Discover Durga Puja pandals, explore live community ratings across 5 craft dimensions, track your visited pandals, and follow friends’ Puja trails.'
                   })
                 }
               >
