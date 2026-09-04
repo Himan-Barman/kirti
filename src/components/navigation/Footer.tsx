@@ -34,9 +34,7 @@ export const Footer: React.FC = () => {
           {/* Column 1: Brand & Identity */}
           <div className="footer-brand-col">
             <div className="footer-logo-row" onClick={() => handleNavigate('discover')}>
-              <span className="footer-logo-text">KIRTI</span>
-              <span className="footer-logo-dot"></span>
-              <span className="footer-bengali-mark">কীর্তি</span>
+              <span className="footer-logo-text">aabesh</span>
             </div>
 
             <p className="footer-tagline">
@@ -202,7 +200,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Metadata Bar */}
         <div className="footer-bottom-bar">
           <div className="footer-copyright">
-            <span>© 2026 KIRTI কীর্তি . Durga Puja Discovery & Community</span>
+            <span>© 2026 aabesh — Durga Puja Discovery & Community</span>
           </div>
 
           <div className="footer-crafted-by">
@@ -354,38 +352,50 @@ export const Footer: React.FC = () => {
         }
         .footer-logo-row {
           display: inline-flex;
-          align-items: baseline;
+          align-items: center;
           gap: 8px;
           cursor: pointer;
           user-select: none;
           width: fit-content;
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+        }
+        .footer-logo-row:hover {
+          opacity: 0.92;
+          transform: translateY(-0.5px);
         }
         .footer-logo-text {
-          font-size: 20px;
+          font-family: var(--font-brand);
+          font-size: 32px;
           line-height: 1;
-          font-weight: 800;
-          letter-spacing: -0.03em;
+          font-weight: 400;
+          letter-spacing: 0.02em;
           color: var(--text-primary);
+          text-rendering: optimizeLegibility;
+          -webkit-font-smoothing: antialiased;
+          margin-top: -2px;
         }
         @media (max-width: 768px) {
           .footer-logo-text {
-            font-size: 18px;
+            font-size: 27px;
           }
         }
         .footer-logo-dot {
           display: inline-block;
-          width: 6px;
-          height: 6px;
-          background-color: var(--kirti-red);
+          width: 5px;
+          height: 5px;
+          background: linear-gradient(135deg, #DC2626, var(--kirti-red));
           border-radius: 50%;
-          margin-bottom: 2px;
+          box-shadow: 0 0 8px rgba(180, 35, 42, 0.45);
+          margin-top: 4px;
         }
         .footer-bengali-mark {
-          font-family: 'Tiro Bangla', serif;
-          font-size: 15px;
-          font-weight: 700;
+          font-family: var(--font-brand-bengali);
+          font-size: 20px;
+          font-weight: 400;
           color: var(--kirti-red);
+          letter-spacing: 0.01em;
           opacity: 0.95;
+          margin-top: -1px;
         }
         .footer-tagline {
           font-size: 13.5px;

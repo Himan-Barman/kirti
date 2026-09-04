@@ -1,4 +1,4 @@
-// Geolocation & Distance Utilities for KIRTI
+// Geolocation & Distance Utilities for aabesh
 export interface GeoCoordinates {
   latitude: number;
   longitude: number;

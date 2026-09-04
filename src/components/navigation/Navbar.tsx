@@ -68,9 +68,7 @@ export const Navbar: React.FC = () => {
           <div className="header-inner-row">
             {/* Brand Logo */}
             <div className="brand-group" onClick={() => setActiveTab('discover')}>
-              <span className="logo-text">KIRTI</span>
-              <span className="logo-dot"></span>
-              <span className="logo-bengali-mark">কীর্তি</span>
+              <span className="logo-text">aabesh</span>
             </div>
 
             {/* Global SearchBar with Instant Dropdown Popup (Desktop) */}
@@ -363,38 +361,50 @@ export const Navbar: React.FC = () => {
         }
         .brand-group {
           display: inline-flex;
-          align-items: baseline;
+          align-items: center;
           gap: 8px;
           cursor: pointer;
           user-select: none;
           flex-shrink: 0;
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+        }
+        .brand-group:hover {
+          opacity: 0.92;
+          transform: translateY(-0.5px);
         }
         .logo-text {
-          font-size: 19px;
+          font-family: var(--font-brand);
+          font-size: 32px;
           line-height: 1;
-          font-weight: 800;
-          letter-spacing: -0.03em;
+          font-weight: 400;
+          letter-spacing: 0.02em;
           color: var(--text-primary);
+          text-rendering: optimizeLegibility;
+          -webkit-font-smoothing: antialiased;
+          margin-top: -2px;
         }
         @media (max-width: 768px) {
           .logo-text {
-            font-size: 17px;
+            font-size: 27px;
           }
         }
         .logo-dot {
           display: inline-block;
-          width: 6px;
-          height: 6px;
-          background-color: var(--kirti-red);
+          width: 5px;
+          height: 5px;
+          background: linear-gradient(135deg, #DC2626, var(--kirti-red));
           border-radius: 50%;
-          margin-bottom: 2px;
+          box-shadow: 0 0 8px rgba(180, 35, 42, 0.45);
+          margin-top: 4px;
         }
         .logo-bengali-mark {
-          font-family: 'Tiro Bangla', serif;
-          font-size: 15px;
-          font-weight: 700;
+          font-family: var(--font-brand-bengali);
+          font-size: 20px;
+          font-weight: 400;
           color: var(--kirti-red);
+          letter-spacing: 0.01em;
           opacity: 0.95;
+          margin-top: -1px;
         }
         .header-search {
           flex: 1;

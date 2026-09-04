@@ -39,6 +39,14 @@ export const scrollToTop = (immediate = false) => {
   }
 };
 
+export const scrollToPosition = (targetY: number, immediate = false) => {
+  if (lenisInstance) {
+    lenisInstance.scrollTo(targetY, { immediate });
+  } else {
+    window.scrollTo({ top: targetY, behavior: immediate ? 'auto' : 'smooth' });
+  }
+};
+
 export const pauseLenis = () => {
   lenisInstance?.stop();
 };

@@ -1,9 +1,10 @@
 {
   "metadata": {
-    "dataset_name": "KIRTI — Kolkata Durga Puja Pandal Master Dataset",
-    "version": "1.0.0",
+    "dataset_name": "aabesh — Kolkata Durga Puja Pandal Master Dataset",
+    "version": "2.0.0",
+    "last_updated": "2026-09-02",
     "generated_at": "2026-08-31T14:25:00+05:30",
-    "generated_for": "KIRTI Platform — Kolkata Durga Puja Discovery, Rating & Navigation",
+    "generated_for": "aabesh Platform — Kolkata Durga Puja Discovery, Rating & Navigation",
     "current_year": 2026,
     "total_pandals": 75,
     "verified_coordinates": 52,

@@ -20,7 +20,7 @@ import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
 import { ResetPasswordView } from './components/auth/ResetPasswordView';
 import { ToastContainer } from './components/ui/Toast';
 import { X } from 'lucide-react';
-import { initLenis, scrollToTop } from './lib/lenis';
+import { initLenis, scrollToPosition } from './lib/lenis';
 
 export const AppContent: React.FC = () => {
   const {
@@ -36,6 +36,13 @@ export const AppContent: React.FC = () => {
 
   const { session, loading: authLoading } = useAuth();
 
+  // Scroll Position Memory per tab and for modal transitions
+  const scrollPosMapRef = React.useRef<{ [tab: string]: number }>({});
+  const savedPandalScrollRef = React.useRef<number>(0);
+  const prevPandalRef = React.useRef<any>(null);
+  const prevTabRef = React.useRef<string>(activeTab);
+  const isInitialLoadDoneRef = React.useRef<boolean>(false);
+
   React.useEffect(() => {
     // Initialize Lenis smooth scroll
     initLenis();
@@ -45,6 +52,41 @@ export const AppContent: React.FC = () => {
       setActiveTab('reset-password');
     }
   }, [setActiveTab]);
+
+  // Continuously record scroll position for the current active tab
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (!selectedPandal && !isLoading) {
+        const y = window.scrollY;
+        scrollPosMapRef.current[activeTab] = y;
+        try {
+          sessionStorage.setItem(`aabesh_scroll_${activeTab}`, String(y));
+        } catch {}
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [activeTab, selectedPandal, isLoading]);
+
+  // Restore scroll position on initial load
+  React.useEffect(() => {
+    if (!isLoading && !isInitialLoadDoneRef.current) {
+      isInitialLoadDoneRef.current = true;
+      try {
+        const saved = sessionStorage.getItem(`aabesh_scroll_${activeTab}`);
+        if (saved !== null) {
+          const y = parseInt(saved, 10);
+          if (!isNaN(y) && y > 0) {
+            scrollPosMapRef.current[activeTab] = y;
+            setTimeout(() => {
+              scrollToPosition(y, true);
+            }, 60);
+          }
+        }
+      } catch {}
+    }
+  }, [isLoading, activeTab]);
 
   // Protected Route Logic
   React.useEffect(() => {
@@ -117,16 +159,40 @@ export const AppContent: React.FC = () => {
     }
   }, [activeTab]);
 
-  // Scroll to top immediately on tab change or pandal select
+  // Pandal Modal Open / Close Scroll Restoration
   React.useEffect(() => {
-    scrollToTop(true);
-  }, [activeTab, selectedPandal]);
+    if (selectedPandal && !prevPandalRef.current) {
+      // Modal OPENED: save previous scroll position, then scroll to top for detail view
+      savedPandalScrollRef.current = window.scrollY;
+      scrollToPosition(0, true);
+    } else if (!selectedPandal && prevPandalRef.current) {
+      // Modal CLOSED: restore previous scroll position
+      const restoreY = savedPandalScrollRef.current || scrollPosMapRef.current[activeTab] || 0;
+      setTimeout(() => {
+        scrollToPosition(restoreY, true);
+      }, 40);
+    }
+    prevPandalRef.current = selectedPandal;
+  }, [selectedPandal, activeTab]);
+
+  // Tab change scroll restoration
+  React.useEffect(() => {
+    if (activeTab !== prevTabRef.current) {
+      const targetY = scrollPosMapRef.current[activeTab] ?? 0;
+      setTimeout(() => {
+        scrollToPosition(targetY, true);
+      }, 40);
+      prevTabRef.current = activeTab;
+    }
+  }, [activeTab]);
 
   if (isLoading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
         <div style={{ width: 40, height: 40, border: '4px solid var(--kirti-gold)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-        <h2 style={{ marginTop: 20, fontFamily: 'var(--font-bengali)', fontSize: 24, fontWeight: 'bold' }}>কীর্তি</h2>
+        <div style={{ marginTop: 20 }}>
+          <span style={{ fontFamily: 'var(--font-brand)', fontSize: 34, fontWeight: 400, letterSpacing: '0.02em', color: 'var(--text-primary)' }}>aabesh</span>
+        </div>
         <style>{`
           @keyframes spin { 100% { transform: rotate(360deg); } }
         `}</style>

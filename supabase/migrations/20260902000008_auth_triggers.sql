@@ -31,7 +31,7 @@ BEGIN
   VALUES (
     NEW.id,
     v_username,
-    COALESCE(NEW.raw_user_meta_data->>'display_name', 'Kirti User')
+    COALESCE(NEW.raw_user_meta_data->>'display_name', 'aabesh User')
   );
 
   -- Insert default profile settings

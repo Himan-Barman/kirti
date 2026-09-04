@@ -53,36 +53,49 @@
 /* Auth Branding Header matching Navbar & Footer */
 .auth-brand-logo {
   display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 9px;
   cursor: pointer;
   user-select: none;
   margin-bottom: 6px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.auth-brand-logo:hover {
+  opacity: 0.92;
+  transform: translateY(-0.5px);
 }
 
 .auth-brand-logo .logo-text {
-  font-size: 22px;
+  font-family: var(--font-brand);
+  font-size: 38px;
   line-height: 1;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   color: var(--text-primary);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  margin-top: -3px;
 }
 
 .auth-brand-logo .logo-dot {
   display: inline-block;
-  width: 6px;
-  height: 6px;
-  background-color: var(--kirti-red);
+  width: 5.5px;
+  height: 5.5px;
+  background: linear-gradient(135deg, #DC2626, var(--kirti-red));
   border-radius: 50%;
-  margin-bottom: 2px;
+  box-shadow: 0 0 8px rgba(180, 35, 42, 0.45);
+  margin-top: 5px;
 }
 
 .auth-brand-logo .logo-bengali-mark {
-  font-family: 'Tiro Bangla', serif;
-  font-size: 16px;
-  font-weight: 700;
+  font-family: var(--font-brand-bengali);
+  font-size: 23px;
+  font-weight: 400;
   color: var(--kirti-red);
+  letter-spacing: 0.01em;
   opacity: 0.95;
+  margin-top: -1px;
 }
 
 .auth-subtitle {

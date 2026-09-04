@@ -62,9 +62,7 @@ export const LoginView: React.FC = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-brand-logo" onClick={() => setActiveTab('discover')}>
-          <span className="logo-text">KIRTI</span>
-          <span className="logo-dot"></span>
-          <span className="logo-bengali-mark">কীর্তি</span>
+          <span className="logo-text">aabesh</span>
         </div>
         <p className="auth-subtitle">Welcome back</p>
 

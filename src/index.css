@@ -52,6 +52,8 @@
   --radius-full: 9999px;
 
   --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-brand: 'Grand Hotel', 'Style Script', 'Satisfy', 'Pacifico', cursive;
+  --font-brand-bengali: 'Galada', 'Tiro Bangla', cursive, serif;
   --font-bengali: 'Plus Jakarta Sans', 'Noto Serif Bengali', serif;
 }
 

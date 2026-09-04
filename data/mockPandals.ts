@@ -522,7 +522,7 @@ export const INITIAL_PANDALS: Pandal[] = [
     created_at: '2026-08-01T15:30:00Z'
   },
   // ============================================================
-  // RESEARCH-VERIFIED PANDALS (from KIRTI Master Dataset)
+  // RESEARCH-VERIFIED PANDALS (from aabesh Master Dataset)
   // ============================================================
   {
     id: 'p-13',

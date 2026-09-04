@@ -17,7 +17,7 @@ The ancient Agomoni songs, composed by poets like Ramprasad Sen, Kamalakanta Bha
 
 When autumn’s azure sky blooms with golden sunshine and soft white **Kash Phool** sway in the gentle breeze, every Bengali household echoes with the sentiment: *“Maa Aschen”* (Mother is coming home).`,
     bengali_content: `বাঙালির দুর্গাপূজা শুধু শক্তির আরাধনা নয়, এ হলো কন্যার ঘরে ফেরার এক চিরন্তন আবেগ। হিমালয়ের কৈলাস থেকে কন্যা উমা বছরে চার দিনের জন্য পিত্রালয়ে ফিরে আসেন। কাশফুল, শিউলি আর পেঁজা তুলোর মতো মেঘের ভেলায় ভেসে আসে আগমনীর বার্তা।`,
-    author: 'KIRTI Editorial Board',
+    author: 'aabesh Editorial Board',
     tags: ['Agomoni', 'Tradition', 'Bengali Lore', 'Sharodotsav'],
     published_date: '2026-08-15'
   },
@@ -95,7 +95,7 @@ During Sandhya Aarti, devotees grip earthen censers filled with burning coconut 
 ### Sindoor Khela on Bijoya Dashami
 On the final morning, women in traditional red-and-white *Laal-Paar* sarees gather in front of the idol. They touch sweets and vermilion to Maa Durga’s forehead and lips, wishing her a safe journey back to Mount Kailash, before joyfully applying Sindoor to one another in celebration of womanhood, prosperity, and sisterhood.`,
     bengali_content: `কাঁসির শব্দ আর ঢাকের মাতন, ধুনুচি নাচের উন্মাদনা আর দশমীর দিন সিঁদুর খেলার লাল রঙে রাঙিয়ে ওঠা বাঙালির আবেগ। শুভ বিজয়ার আন্তরিক শুভেচ্ছা।`,
-    author: 'KIRTI Cultural Forum',
+    author: 'aabesh Cultural Forum',
     tags: ['Dhak', 'Dhunuchi', 'Sindoor Khela', 'Bijoya'],
     published_date: '2026-08-25'
   }

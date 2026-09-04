@@ -146,7 +146,7 @@ export const LandingShowcase: React.FC = () => {
               </h1>
 
               <div className="hero-bengali-side-block" aria-hidden="true">
-                <span className="hero-bengali-side-text">কীর্তি</span>
+                <span className="hero-bengali-side-text">আবেশ</span>
               </div>
             </div>
 

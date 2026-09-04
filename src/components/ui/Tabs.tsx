@@ -29,27 +29,18 @@ export const Tabs: React.FC<TabsProps> = ({
 
   const scrollToCenter = React.useCallback((id: string, smooth: boolean = true) => {
     const btn = tabRefs.current.get(id);
-    if (!btn) return;
+    const container = containerRef.current;
+    if (!btn || !container) return;
 
-    try {
-      btn.scrollIntoView({
-        behavior: smooth ? 'smooth' : 'auto',
-        inline: 'center',
-        block: 'nearest'
-      });
-    } catch {
-      const container = containerRef.current || btn.parentElement;
-      if (container) {
-        const containerWidth = container.clientWidth;
-        const btnLeft = btn.offsetLeft;
-        const btnWidth = btn.offsetWidth;
-        const targetScroll = btnLeft - (containerWidth / 2) + (btnWidth / 2);
-        container.scrollTo({
-          left: Math.max(0, targetScroll),
-          behavior: smooth ? 'smooth' : 'auto'
-        });
-      }
-    }
+    const containerWidth = container.clientWidth;
+    const btnLeft = btn.offsetLeft;
+    const btnWidth = btn.offsetWidth;
+    const targetScroll = btnLeft - (containerWidth / 2) + (btnWidth / 2);
+    
+    container.scrollTo({
+      left: Math.max(0, targetScroll),
+      behavior: smooth ? 'smooth' : 'auto'
+    });
   }, []);
 
   React.useEffect(() => {
