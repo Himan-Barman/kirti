@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ShareData, SocialAssetFormat } from '../../lib/social/types';
-import { FORMAT_DIMENSIONS } from '../../lib/social/types';
 import { generateShareCopy, buildPlatformIntentUrl } from '../../lib/social/copy';
 import { sanitizeShareDataForPrivacy, isShareAllowedByPrivacy } from '../../lib/social/privacy';
 import {
@@ -116,17 +115,27 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, data })
   };
 
   const handleWebShareFile = async (format: SocialAssetFormat) => {
-    const success = await shareSocialAssetWithWebShare(cleanData, format, {
-      title: copyPayload.title,
-      text: copyPayload.shareText,
-      url: copyPayload.url
-    });
+    try {
+      showToast('Preparing share...', 'info');
+      const result = await shareSocialAssetWithWebShare(cleanData, format, {
+        title: copyPayload.title,
+        text: copyPayload.shareText,
+        url: copyPayload.url
+      });
 
-    if (success) {
-      showToast('Shared successfully', 'success');
-    } else {
-      // Fallback: Copy link
-      handleCopyLink();
+      if (result === 'shared_file' || result === 'shared_text') {
+        showToast('Shared successfully', 'success');
+      } else if (result === 'downloaded') {
+        showToast('Image saved to device & link copied!', 'success');
+      }
+    } catch (err) {
+      console.error('Share action error:', err);
+      try {
+        await downloadSocialAsset(cleanData, format);
+        showToast('Image saved to device', 'success');
+      } catch {
+        handleCopyLink();
+      }
     }
   };
 
@@ -156,6 +165,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, data })
                 {cleanData.type === 'visit' && `Checked in at ${cleanData.pandal.name}`}
                 {cleanData.type === 'journey' && 'My Durga Puja Trail'}
                 {cleanData.type === 'ranking' && `Kolkata's Most Loved Pandals (${cleanData.categoryName})`}
+                {cleanData.type === 'app' && 'Discover Kolkata Pandals, Ratings & Live Trails'}
               </p>
             </div>
           </div>
@@ -335,7 +345,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, data })
           {/* TAB 2, 3, 4, 5: VISUAL ASSET RENDERERS (Story, Status, Feed, OG) */}
           {activeTab !== 'quick' && (
             <div className="visual-asset-preview-layout">
-              {/* Left/Top: Live Canvas Image Viewport */}
+              {/* Live Canvas Image Viewport */}
               <div className="preview-canvas-holder">
                 {isRendering ? (
                   <div className="canvas-loading-spinner">
@@ -355,32 +365,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, data })
                 )}
               </div>
 
-              {/* Right/Bottom: Asset Metadata & Download Actions */}
+              {/* Download & Direct Share Actions */}
               <div className="preview-controls-col">
-                <div className="format-info-card">
-                  <h3 className="format-info-title">
-                    {activeTab === 'story' && 'Instagram Story Asset'}
-                    {activeTab === 'status' && 'WhatsApp Status Visual'}
-                    {activeTab === 'feed' && 'Instagram Feed Portrait'}
-                    {activeTab === 'square' && 'Square Post Asset'}
-                    {activeTab === 'og' && 'OpenGraph Preview Card'}
-                  </h3>
-                  <p className="format-info-sub">
-                    {activeTab === 'story' && 'Immersive full-bleed composition with Aabesh brand mark and safe zones for story UI.'}
-                    {activeTab === 'status' && 'Clean 2-second visual diary entry formatted for WhatsApp Status and mobile viewing.'}
-                    {activeTab === 'feed' && 'Editorial cultural poster format (4:5 ratio) with structured craft breakdown.'}
-                    {activeTab === 'square' && 'Classic 1:1 post for Instagram grid and profile shares.'}
-                    {activeTab === 'og' && 'Card layout automatically shown when your link is shared on Facebook, X, Telegram or LinkedIn.'}
-                  </p>
-                  <div className="format-dim-badge">
-                    {activeTab === 'story' && FORMAT_DIMENSIONS.story_1080x1920.width + ' × ' + FORMAT_DIMENSIONS.story_1080x1920.height + ' (' + FORMAT_DIMENSIONS.story_1080x1920.aspectRatioLabel + ')'}
-                    {activeTab === 'status' && FORMAT_DIMENSIONS.status_1080x1920.width + ' × ' + FORMAT_DIMENSIONS.status_1080x1920.height + ' (' + FORMAT_DIMENSIONS.status_1080x1920.aspectRatioLabel + ')'}
-                    {activeTab === 'feed' && FORMAT_DIMENSIONS.feed_1080x1350.width + ' × ' + FORMAT_DIMENSIONS.feed_1080x1350.height + ' (' + FORMAT_DIMENSIONS.feed_1080x1350.aspectRatioLabel + ')'}
-                    {activeTab === 'square' && FORMAT_DIMENSIONS.square_1080x1080.width + ' × ' + FORMAT_DIMENSIONS.square_1080x1080.height + ' (' + FORMAT_DIMENSIONS.square_1080x1080.aspectRatioLabel + ')'}
-                    {activeTab === 'og' && FORMAT_DIMENSIONS.og_1200x630.width + ' × ' + FORMAT_DIMENSIONS.og_1200x630.height + ' (' + FORMAT_DIMENSIONS.og_1200x630.aspectRatioLabel + ')'}
-                  </div>
-                </div>
-
                 <div className="asset-action-buttons">
                   {/* Primary Download Button */}
                   <button

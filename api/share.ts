@@ -2,7 +2,7 @@
 export default function handler(req: any, res: any) {
   try {
     const url = new URL(req.url || '', `http://${req.headers?.host || 'localhost'}`);
-    const host = req.headers?.['x-forwarded-host'] || req.headers?.host || 'aabesh.in';
+    const host = req.headers?.['x-forwarded-host'] || req.headers?.host || 'aabesh.vercel.app';
     const proto = req.headers?.['x-forwarded-proto'] || 'https';
     const baseUrl = `${proto}://${host}`;
 

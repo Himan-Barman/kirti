@@ -342,7 +342,97 @@ const renderOpenGraphCard = async (
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.font = '500 13px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('aabesh.in • Durga Puja Discovery, 5-Star Ratings & Live Trails', contentX, h - 52);
+    ctx.fillText('aabesh.vercel.app • Durga Puja Discovery, 5-Star Ratings & Live Trails', contentX, h - 52);
+  } else if (data.type === 'app') {
+    const img = await loadImage('/durga-traditional.jpg');
+    const imgX = 48;
+    const imgY = 48;
+    const imgW = 460;
+    const imgH = h - 96;
+    const imgR = 24;
+
+    ctx.save();
+    roundRect(ctx, imgX, imgY, imgW, imgH, imgR);
+    ctx.clip();
+
+    if (img) {
+      const scale = Math.max(imgW / img.width, imgH / img.height);
+      const sw = imgW / scale;
+      const sh = imgH / scale;
+      const sx = (img.width - sw) / 2;
+      const sy = Math.max(0, (img.height - sh) * 0.25);
+      ctx.drawImage(img, sx, sy, sw, sh, imgX, imgY, imgW, imgH);
+
+      const imgVignette = ctx.createLinearGradient(imgX, imgY, imgX, imgY + imgH);
+      imgVignette.addColorStop(0, 'rgba(0,0,0,0.1)');
+      imgVignette.addColorStop(0.7, 'rgba(0,0,0,0.4)');
+      imgVignette.addColorStop(1, 'rgba(10,10,10,0.9)');
+      ctx.fillStyle = imgVignette;
+      ctx.fillRect(imgX, imgY, imgW, imgH);
+    } else {
+      ctx.fillStyle = '#151518';
+      ctx.fillRect(imgX, imgY, imgW, imgH);
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = 'rgba(201, 162, 39, 0.4)';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, imgX, imgY, imgW, imgH, imgR);
+    ctx.stroke();
+
+    const contentX = 548;
+    let currY = 88;
+
+    ctx.textAlign = 'left';
+    ctx.font = '400 48px "Grand Hotel", cursive';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('aabesh', contentX, currY);
+
+    ctx.font = '400 24px "Galada", "Tiro Bangla", serif';
+    ctx.fillStyle = '#B4232A';
+    ctx.fillText('আবেশ', contentX + 160, currY - 6);
+
+    currY += 56;
+
+    ctx.fillStyle = 'rgba(201, 162, 39, 0.16)';
+    roundRect(ctx, contentX, currY, 260, 32, 16);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(201, 162, 39, 0.35)';
+    ctx.stroke();
+
+    ctx.font = '800 11px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#C9A227';
+    ctx.fillText('THE DURGA PUJA SOCIAL PLATFORM', contentX + 16, currY + 20);
+
+    currY += 58;
+
+    ctx.font = '800 32px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('Discover Kolkata Pandals & Live Trails', contentX, currY);
+    currY += 38;
+    ctx.font = '600 20px "Tiro Bangla", serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.fillText('কলকাতার সেরা দুর্গাপূজা পরিক্রমা ও মূল্যায়ন', contentX, currY);
+
+    currY += 36;
+
+    // Feature chips
+    const features = ['⭐ 5-Dimension Ratings', '📍 1-Tap Visit Passport', '🗺️ Proximity Radar'];
+    features.forEach((feat, idx) => {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+      roundRect(ctx, contentX + idx * 190, currY, 180, 42, 12);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.stroke();
+
+      ctx.font = '700 12px "Plus Jakarta Sans", sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fillText(feat, contentX + idx * 190 + 12, currY + 26);
+    });
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.font = '600 14px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('aabesh.vercel.app • Discover. Experience. Remember.', contentX, h - 52);
   } else if (data.type === 'ranking') {
     // Ranking OpenGraph Card
     renderRankingLayout(ctx, data, w, h);
@@ -471,7 +561,40 @@ const renderInstagramStory = async (
 
     ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText('Explore on aabesh.in →', w / 2, ctaY + 36);
+    ctx.fillText('Explore on aabesh.vercel.app →', w / 2, ctaY + 36);
+  } else if (data.type === 'app') {
+    const centerY = h - 740;
+
+    ctx.fillStyle = 'rgba(201, 162, 39, 0.2)';
+    roundRect(ctx, w / 2 - 140, centerY - 60, 280, 44, 22);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(201, 162, 39, 0.45)';
+    ctx.stroke();
+
+    ctx.font = '800 13px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#C9A227';
+    ctx.fillText('THE DURGA PUJA NETWORK', w / 2, centerY - 32);
+
+    ctx.font = '800 50px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('Discover Kolkata Pandals.', w / 2, centerY + 30);
+    ctx.fillText('Rate Authentic Craft.', w / 2, centerY + 94);
+    ctx.fillText('Track Friend Trails.', w / 2, centerY + 158);
+
+    ctx.font = '600 26px "Tiro Bangla", serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.fillText('কলকাতার পুজো পরিক্রমা ও লাইভ রেটিং', w / 2, centerY + 224);
+
+    const ctaY = h - 280;
+    ctx.fillStyle = 'rgba(180, 35, 42, 0.95)';
+    roundRect(ctx, w / 2 - 200, ctaY, 400, 64, 32);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(201, 162, 39, 0.4)';
+    ctx.stroke();
+
+    ctx.font = '700 17px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('Explore on aabesh.vercel.app →', w / 2, ctaY + 39);
   }
 };
 
@@ -580,7 +703,56 @@ const renderWhatsAppStatus = async (
     // Footer
     ctx.font = '500 16px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.fillText('aabesh.in', w / 2, h - 140);
+    ctx.fillText('aabesh.vercel.app', w / 2, h - 140);
+  } else if (data.type === 'app') {
+    const img = await loadImage('/durga-portrait.jpg');
+    const frameX = 80;
+    const frameY = 340;
+    const frameW = w - 160;
+    const frameH = 920;
+    const frameR = 32;
+
+    ctx.save();
+    roundRect(ctx, frameX, frameY, frameW, frameH, frameR);
+    ctx.clip();
+    if (img) {
+      const scale = Math.max(frameW / img.width, frameH / img.height);
+      const sw = frameW / scale;
+      const sh = frameH / scale;
+      const sx = (img.width - sw) / 2;
+      const sy = Math.max(0, (img.height - sh) * 0.25);
+      ctx.drawImage(img, sx, sy, sw, sh, frameX, frameY, frameW, frameH);
+
+      const grad = ctx.createLinearGradient(frameX, frameY + frameH * 0.5, frameX, frameY + frameH);
+      grad.addColorStop(0, 'rgba(0,0,0,0)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.88)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(frameX, frameY, frameW, frameH);
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = 'rgba(201, 162, 39, 0.45)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, frameX, frameY, frameW, frameH, frameR);
+    ctx.stroke();
+
+    const bottomY = 1360;
+    ctx.textAlign = 'center';
+    ctx.font = '800 15px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#C9A227';
+    ctx.fillText('DISCOVER • EXPERIENCE • REMEMBER', w / 2, bottomY);
+
+    ctx.font = '800 44px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('Kolkata Durga Puja 2026', w / 2, bottomY + 54);
+
+    ctx.font = '600 24px "Tiro Bangla", serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.fillText('কলকাতার সবচেয়ে প্রাণবন্ত পুজো পরিক্রমা', w / 2, bottomY + 100);
+
+    ctx.font = '600 17px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.fillText('aabesh.vercel.app', w / 2, h - 140);
   }
 };
 
@@ -685,7 +857,59 @@ const renderInstagramFeed = async (
     ctx.font = '600 14px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.textAlign = 'right';
-    ctx.fillText('Discover this Puja on aabesh.in', w - 64, footerY + 20);
+    ctx.fillText('Discover this Puja on aabesh.vercel.app', w - 64, footerY + 20);
+  } else if (data.type === 'app') {
+    const img = await loadImage('/durga-traditional.jpg');
+    const imgH = 760;
+    if (img) {
+      const scale = Math.max(w / img.width, imgH / img.height);
+      const sw = w / scale;
+      const sh = imgH / scale;
+      const sx = (img.width - sw) / 2;
+      const sy = Math.max(0, (img.height - sh) * 0.25);
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, imgH);
+
+      const fade = ctx.createLinearGradient(0, imgH - 180, 0, imgH);
+      fade.addColorStop(0, 'rgba(12, 12, 14, 0)');
+      fade.addColorStop(1, 'rgba(12, 12, 14, 1)');
+      ctx.fillStyle = fade;
+      ctx.fillRect(0, imgH - 180, w, 180);
+    }
+
+    // Floating header pill
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.85)';
+    roundRect(ctx, 60, 60, 220, 52, 26);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(201, 162, 39, 0.4)';
+    ctx.stroke();
+
+    ctx.font = '400 34px "Grand Hotel", cursive';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.fillText('aabesh', 140, 96);
+    ctx.font = '400 18px "Galada", "Tiro Bangla", serif';
+    ctx.fillStyle = '#B4232A';
+    ctx.fillText('আবেশ', 220, 94);
+
+    const cardY = imgH + 20;
+    ctx.textAlign = 'left';
+
+    ctx.font = '800 13px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#C9A227';
+    ctx.fillText('THE DURGA PUJA SOCIAL NETWORK • 2026', 64, cardY + 20);
+
+    ctx.font = '800 40px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('Discover Pandals. Rate Craft.', 64, cardY + 70);
+    ctx.fillText('Track Where Friends Go.', 64, cardY + 118);
+
+    ctx.font = '600 22px "Tiro Bangla", serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.fillText('কলকাতার পুজো পরিক্রমা, খাঁটি মূল্যায়ন ও বন্ধুবান্ধব', 64, cardY + 164);
+
+    ctx.font = '600 15px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#C9A227';
+    ctx.fillText('aabesh.vercel.app', 64, h - 60);
   }
 };
 
@@ -763,7 +987,52 @@ const renderSquarePost = async (
 
     ctx.font = '500 14px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.fillText('aabesh.in', rx, h - 80);
+    ctx.fillText('aabesh.vercel.app', rx, h - 80);
+  } else if (data.type === 'app') {
+    const img = await loadImage('/durga-traditional.jpg');
+    const imgW = 540;
+    if (img) {
+      const scale = Math.max(imgW / img.width, h / img.height);
+      const sw = imgW / scale;
+      const sh = h / scale;
+      const sx = (img.width - sw) / 2;
+      const sy = Math.max(0, (img.height - sh) * 0.25);
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, imgW, h);
+
+      const fade = ctx.createLinearGradient(imgW - 120, 0, imgW, 0);
+      fade.addColorStop(0, 'rgba(10, 10, 10, 0)');
+      fade.addColorStop(1, 'rgba(10, 10, 10, 1)');
+      ctx.fillStyle = fade;
+      ctx.fillRect(imgW - 120, 0, 120, h);
+    }
+
+    const rx = 580;
+    ctx.textAlign = 'left';
+
+    ctx.font = '400 52px "Grand Hotel", cursive';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('aabesh', rx, 140);
+
+    ctx.font = '400 24px "Galada", "Tiro Bangla", serif';
+    ctx.fillStyle = '#B4232A';
+    ctx.fillText('আবেশ', rx + 180, 134);
+
+    ctx.font = '800 12px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#C9A227';
+    ctx.fillText('THE DURGA PUJA SOCIAL PLATFORM', rx, 210);
+
+    ctx.font = '800 36px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('Discover Kolkata Pandals', rx, 270);
+    ctx.fillText('& Live Community Ratings', rx, 318);
+
+    ctx.font = '600 20px "Tiro Bangla", serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.fillText('কলকাতার সেরা পুজো পরিক্রমা', rx, 370);
+
+    ctx.font = '600 15px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.fillText('aabesh.vercel.app', rx, h - 80);
   }
 };
 
@@ -824,7 +1093,7 @@ const renderRankingLayout = (
 
   ctx.font = '500 13px "Plus Jakarta Sans", sans-serif';
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.fillText('aabesh.in • Official Community Ratings & Rankings', w / 2, h - 36);
+  ctx.fillText('aabesh.vercel.app • Official Community Ratings & Rankings', w / 2, h - 36);
 };
 
 const renderJourneyLayout = (
@@ -868,7 +1137,7 @@ const renderJourneyLayout = (
 
   ctx.font = '500 13px "Plus Jakarta Sans", sans-serif';
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.fillText('Track your own festive journey on aabesh.in', w / 2, h - 40);
+  ctx.fillText('Track your own festive journey on aabesh.vercel.app', w / 2, h - 40);
 };
 
 /* =========================================================================
@@ -917,34 +1186,49 @@ export const shareSocialAssetWithWebShare = async (
   data: ShareData,
   format: SocialAssetFormat,
   sharePayload: { title: string; text: string; url: string }
-): Promise<boolean> => {
-  if (typeof navigator === 'undefined' || !navigator.share) {
-    return false;
-  }
-
+): Promise<'shared_file' | 'shared_text' | 'downloaded'> => {
   try {
     const blob = await renderSocialAssetToBlob(data, format);
-    const file = new File([blob], `aabesh-${format}.png`, { type: 'image/png' });
+    const file = new File([blob], `aabesh-${format.split('_')[0]}.png`, { type: 'image/png' });
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        title: sharePayload.title,
-        text: sharePayload.text,
-        url: sharePayload.url,
-        files: [file]
-      });
-      return true;
-    } else {
-      await navigator.share({
-        title: sharePayload.title,
-        text: sharePayload.text,
-        url: sharePayload.url
-      });
-      return true;
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      // 1. Try file sharing (Supported on mobile Safari & Chrome HTTPS)
+      if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: sharePayload.title,
+            text: `${sharePayload.text}\n${sharePayload.url}`
+          });
+          return 'shared_file';
+        } catch (fileShareErr: any) {
+          if (fileShareErr.name === 'AbortError') return 'shared_file';
+          console.warn('File share threw, falling back to text share:', fileShareErr);
+        }
+      }
+
+      // 2. Try URL + text share
+      try {
+        await navigator.share({
+          title: sharePayload.title,
+          text: `${sharePayload.text}\n${sharePayload.url}`
+        });
+        return 'shared_text';
+      } catch (textShareErr: any) {
+        if (textShareErr.name === 'AbortError') return 'shared_text';
+        console.warn('Text share threw, falling back to download:', textShareErr);
+      }
     }
-  } catch (err: any) {
-    if (err.name === 'AbortError') return true; // User cancelled share
-    console.error('Web Share failed', err);
-    return false;
+  } catch (renderErr) {
+    console.warn('Render to blob error:', renderErr);
   }
+
+  // 3. Robust Fallback (Desktop / non-HTTPS / unsupported): Download asset to device gallery and copy link
+  await downloadSocialAsset(data, format);
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(sharePayload.url);
+    }
+  } catch {}
+  return 'downloaded';
 };

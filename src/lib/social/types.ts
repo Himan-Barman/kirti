@@ -67,7 +67,6 @@ export const FORMAT_DIMENSIONS: Record<SocialAssetFormat, FormatDimensions> = {
   }
 };
 
-export type ShareType = 'pandal' | 'rating' | 'visit' | 'journey' | 'ranking';
 
 export interface PandalShareData {
   type: 'pandal';
@@ -117,12 +116,25 @@ export interface RankingShareData {
   }>;
 }
 
+export type ShareType = 'pandal' | 'rating' | 'visit' | 'journey' | 'ranking' | 'app';
+
+export interface AppShareData {
+  type: 'app';
+  url?: string;
+  title?: string;
+  titleBn?: string;
+  tagline?: string;
+  description?: string;
+  heroImage?: string;
+}
+
 export type ShareData =
   | PandalShareData
   | RatingShareData
   | VisitShareData
   | JourneyShareData
-  | RankingShareData;
+  | RankingShareData
+  | AppShareData;
 
 export interface ShareCopyPayload {
   title: string;

@@ -113,7 +113,7 @@ export default function handler(req: any, res: any) {
   ${ratingMatrix}
 
   <!-- Footer Metadata -->
-  <text x="560" y="565" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="500" fill="rgba(255, 255, 255, 0.45)">aabesh.in • Kolkata Durga Puja Discovery, 5-Star Ratings &amp; Live Trails</text>
+  <text x="560" y="565" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="500" fill="rgba(255, 255, 255, 0.45)">aabesh.vercel.app • Kolkata Durga Puja Discovery, 5-Star Ratings &amp; Live Trails</text>
 </svg>
     `;
 

@@ -12,7 +12,8 @@ import {
   Flame,
   Award,
   CheckCircle2,
-  Navigation
+  Navigation,
+  Share2
 } from 'lucide-react';
 import {
   DEFAULT_KOLKATA_CENTER,
@@ -35,7 +36,8 @@ export const LandingShowcase: React.FC = () => {
     setActiveTab,
     selectedZone,
     sortBy,
-    searchQuery
+    searchQuery,
+    openShareModal
   } = useStore();
 
   const [activeCuratedTab, setActiveCuratedTab] = useState<string>('trending');
@@ -173,6 +175,24 @@ export const LandingShowcase: React.FC = () => {
                 onClick={() => setActiveTab('map')}
               >
                 Interactive Map
+              </Button>
+
+              <Button
+                variant="outline"
+                size="lg"
+                rounded="full"
+                icon={<Share2 size={17} />}
+                onClick={() =>
+                  openShareModal({
+                    type: 'app',
+                    url: 'https://aabesh.vercel.app',
+                    title: 'aabesh (আবেশ) — Kolkata Durga Puja Discovery, Ratings & Social Trails',
+                    description:
+                      'Discover Kolkata Durga Puja pandals, explore live community ratings across 5 craft dimensions, track your visited pandals, and follow friends’ Puja trails.'
+                  })
+                }
+              >
+                Share Website
               </Button>
             </div>
           </div>
