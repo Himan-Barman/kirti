@@ -17,7 +17,8 @@ import {
   ChevronDown,
   Building2,
   Map,
-  Compass
+  Compass,
+  Share2
 } from 'lucide-react';
 import type { RatingCategoryCode } from '../../types/database.types';
 import type { PandalRanking } from '../../types/ranking.types';
@@ -77,7 +78,7 @@ const RANKING_CATEGORIES: RankingCategory[] = [
 ];
 
 export const VoteView: React.FC = () => {
-  const { pandals, setSelectedPandal, voteActiveView, setVoteActiveView } = useStore();
+  const { pandals, setSelectedPandal, voteActiveView, setVoteActiveView, openShareModal } = useStore();
 
   const [voteSearch, setVoteSearch] = useState('');
   const voteSearchInputRef = useRef<HTMLInputElement>(null);
@@ -516,6 +517,63 @@ export const VoteView: React.FC = () => {
           ======================================================================= */}
       {voteActiveView === 'pandals_ranking' && (
         <div className="ranking-view-section">
+          {/* Share Rankings Banner */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            padding: '12px 18px',
+            marginBottom: '16px',
+            gap: '12px',
+            flexWrap: 'wrap'
+          }}>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                🏆 Kolkata's Most Loved Pandals 2026
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                {RANKING_CATEGORIES.find(c => c.id === selectedCatId)?.name} Rankings ({rankings.length} Pandals)
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<Share2 size={14} />}
+              onClick={() => {
+                const activeCat = RANKING_CATEGORIES.find(c => c.id === selectedCatId);
+                const top3 = rankings.slice(0, 3).map((r, idx) => ({
+                  rank: idx + 1,
+                  pandal: pandals.find(p => p.id === r.pandal_id) || {
+                    id: r.pandal_id,
+                    name: r.pandal_name,
+                    slug: r.pandal_slug,
+                    address: r.pandal_address,
+                    zone: r.pandal_zone,
+                    image_url: r.pandal_image_url,
+                    city: 'Kolkata',
+                    committee_name: '',
+                    description: ''
+                  } as any,
+                  score: r.final_score
+                }));
+
+                openShareModal({
+                  type: 'ranking',
+                  categoryCode: selectedCatId,
+                  categoryName: activeCat?.name || 'Overall',
+                  categoryNameBn: activeCat?.name_bn || 'সামগ্রিক',
+                  seasonYear: '2026',
+                  topPandals: top3
+                });
+              }}
+            >
+              Share Top 3 Visual
+            </Button>
+          </div>
+
           <div className="nominees-grid">
             {paginatedRankings.map((pandalRank) => {
               const rank = pandalRank.rank;

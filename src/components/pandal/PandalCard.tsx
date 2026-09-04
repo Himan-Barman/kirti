@@ -2,14 +2,14 @@ import React from 'react';
 import type { PandalWithStats } from '../../types/database.types';
 import { useStore } from '../../lib/store';
 import { Badge, Button, StarRating, Avatar } from '../ui';
-import { MapPin, Check, Users } from 'lucide-react';
+import { MapPin, Check, Users, Share2 } from 'lucide-react';
 
 interface PandalCardProps {
   pandal: PandalWithStats;
 }
 
 export const PandalCard: React.FC<PandalCardProps> = ({ pandal }) => {
-  const { setSelectedPandal, toggleVisit, setSelectedFriendProfile } = useStore();
+  const { setSelectedPandal, toggleVisit, setSelectedFriendProfile, openShareModal } = useStore();
 
   const handleVisitClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -34,6 +34,20 @@ export const PandalCard: React.FC<PandalCardProps> = ({ pandal }) => {
             {pandal.zone}
           </Badge>
         </div>
+
+        {/* Quick Share Trigger on Card */}
+        <button
+          type="button"
+          className="pandal-quick-share-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            openShareModal({ type: 'pandal', pandal });
+          }}
+          title="Share Pandal"
+          aria-label="Share Pandal"
+        >
+          <Share2 size={13} />
+        </button>
 
         {pandal.userVisited && (
           <div className="visited-badge-pos">
@@ -161,6 +175,30 @@ export const PandalCard: React.FC<PandalCardProps> = ({ pandal }) => {
           top: 14px;
           right: 14px;
           z-index: 2;
+        }
+        .pandal-quick-share-btn {
+          position: absolute;
+          bottom: 12px;
+          right: 12px;
+          z-index: 3;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(18, 18, 18, 0.75);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .pandal-quick-share-btn:hover {
+          background: var(--kirti-red);
+          border-color: var(--kirti-gold);
+          transform: scale(1.1);
+          color: #ffffff;
         }
         .pandal-content {
           padding: 20px;

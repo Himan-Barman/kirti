@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../../lib/store';
 import { Card, Input, Button, Avatar, StarRating } from '../ui';
-import { Shield, Check, Database, Edit3 } from 'lucide-react';
+import { Shield, Check, Database, Edit3, Share2 } from 'lucide-react';
 import { SupabaseConfigModal } from './SupabaseConfigModal';
 import type { VisibilitySetting } from '../../types/database.types';
 
@@ -14,7 +14,8 @@ export const ProfileView: React.FC = () => {
     pandals,
     friends,
     toggleVisit,
-    setSelectedPandal
+    setSelectedPandal,
+    openShareModal
   } = useStore();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -106,11 +107,29 @@ export const ProfileView: React.FC = () => {
 
       {/* Visited Pandals Grid */}
       <Card variant="default" padding="lg" rounded="2xl" className="profile-section-card">
-        <div className="section-header-row">
+        <div className="section-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <div>
             <h3 className="section-heading">My Visited Pandals ({visitedPandals.length})</h3>
             <p className="section-subheading">Your personal Puja itinerary and exploration passport</p>
           </div>
+          {visitedPandals.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<Share2 size={14} />}
+              onClick={() => {
+                openShareModal({
+                  type: 'journey',
+                  user: currentUser,
+                  visitedPandals: visitedPandals,
+                  totalVisitedCount: visitedPandals.length,
+                  seasonYear: '2026'
+                });
+              }}
+            >
+              Share Puja Trail
+            </Button>
+          )}
         </div>
 
         {visitedPandals.length > 0 ? (

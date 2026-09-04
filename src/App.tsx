@@ -19,7 +19,9 @@ import { SignupView } from './components/auth/SignupView';
 import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
 import { ResetPasswordView } from './components/auth/ResetPasswordView';
 import { ToastContainer } from './components/ui/Toast';
-import { X } from 'lucide-react';
+import { ShareModal } from './components/social/ShareModal';
+import { DevSocialPreviewStudio } from './components/social/DevSocialPreviewStudio';
+import { X, Sparkles } from 'lucide-react';
 import { initLenis, scrollToPosition } from './lib/lenis';
 
 export const AppContent: React.FC = () => {
@@ -31,7 +33,11 @@ export const AppContent: React.FC = () => {
     setActiveTab,
     setSelectedPandal,
     setSelectedFriendProfile,
-    showToast
+    showToast,
+    shareModalData,
+    closeShareModal,
+    isDevStudioOpen,
+    setIsDevStudioOpen
   } = useStore();
 
   const { session, loading: authLoading } = useAuth();
@@ -291,6 +297,51 @@ export const AppContent: React.FC = () => {
 
       {/* Global Modals */}
       {selectedFriendProfile && <FriendProfileModal />}
+
+      {/* Global Social Sharing Modal */}
+      <ShareModal
+        isOpen={!!shareModalData}
+        onClose={closeShareModal}
+        data={shareModalData}
+      />
+
+      {/* Internal Social Preview Developer Studio (Req. 28) */}
+      <DevSocialPreviewStudio
+        isOpen={isDevStudioOpen}
+        onClose={() => setIsDevStudioOpen(false)}
+      />
+
+      {/* Dev Floating Studio Launcher */}
+      {import.meta.env.DEV && (
+        <button
+          onClick={() => setIsDevStudioOpen(true)}
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            zIndex: 9998,
+            background: 'rgba(18, 18, 18, 0.85)',
+            border: '1px solid rgba(201, 162, 39, 0.4)',
+            borderRadius: '100px',
+            padding: '8px 14px',
+            color: 'var(--kirti-gold)',
+            fontSize: '12px',
+            fontWeight: 600,
+            letterSpacing: '0.05em',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            cursor: 'pointer',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(10px)',
+            transition: 'all 0.2s ease'
+          }}
+          title="Open Social Preview Studio (Alt+S)"
+        >
+          <Sparkles size={14} />
+          <span>Social Studio</span>
+        </button>
+      )}
 
       {/* Global Premium Toast Notifications */}
       <ToastContainer />

@@ -9,6 +9,7 @@ import type {
   PandalWithStats
 } from '../types/database.types';
 import type { ToastData } from '../components/ui/Toast';
+import type { ShareData } from './social/types';
 import { supabase } from './supabase';
 import { useAuth } from './auth';
 import { DEFAULT_KOLKATA_CENTER } from './geo';
@@ -43,6 +44,13 @@ interface StoreContextType {
   toasts: ToastData[];
   toastMessage: string | null; // Keeping for backward compatibility temporarily if needed
   theme: 'light' | 'dark';
+
+  // Social Sharing & Preview Studio State
+  shareModalData: ShareData | null;
+  isDevStudioOpen: boolean;
+  openShareModal: (data: ShareData) => void;
+  closeShareModal: () => void;
+  setIsDevStudioOpen: (open: boolean) => void;
 
   userLocation: GeoCoordinates | null;
   locationStatus: 'idle' | 'requesting' | 'granted' | 'denied' | 'unsupported';
@@ -152,6 +160,30 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [sortBy, setSortBy] = useState<'rating' | 'visits' | 'friends' | 'name'>('rating');
   const [toasts, setToasts] = useState<ToastData[]>([]);
   const [toastMessage] = useState<string | null>(null);
+
+  // Social Sharing & Studio State
+  const [shareModalData, setShareModalData] = useState<ShareData | null>(null);
+  const [isDevStudioOpen, setIsDevStudioOpen] = useState(false);
+
+  const openShareModal = (data: ShareData) => {
+    setShareModalData(data);
+  };
+
+  const closeShareModal = () => {
+    setShareModalData(null);
+  };
+
+  // Keyboard shortcut for Dev Preview Studio: Alt+S or Ctrl+Shift+S
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.altKey && e.key.toLowerCase() === 's') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's')) {
+        e.preventDefault();
+        setIsDevStudioOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Live GPS & Location State
   const [userLocation, setUserLocation] = useState<GeoCoordinates | null>(null);
@@ -453,6 +485,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         toasts,
         toastMessage,
         theme,
+
+        // Social Sharing & Studio
+        shareModalData,
+        isDevStudioOpen,
+        openShareModal,
+        closeShareModal,
+        setIsDevStudioOpen,
 
         userLocation,
         locationStatus,

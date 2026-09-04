@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useStore } from '../../lib/store';
 import { Button, Badge, Avatar } from '../ui';
 import { RatingForm, UserRating } from '../rating';
+import { ShareButton } from '../social/ShareButton';
 import { useAuth } from '../../lib/auth';
-import { ArrowLeft, MapPin, Check, Lock } from 'lucide-react';
+import { ArrowLeft, MapPin, Check, Lock, Share2 } from 'lucide-react';
 
 export const PandalDetailModal: React.FC = () => {
   const {
@@ -12,7 +13,9 @@ export const PandalDetailModal: React.FC = () => {
     toggleVisit,
     submitRating,
     setSelectedFriendProfile,
-    setActiveTab
+    setActiveTab,
+    openShareModal,
+    currentUser
   } = useStore();
   const { user } = useAuth();
 
@@ -20,7 +23,6 @@ export const PandalDetailModal: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!selectedPandal) return null;
-
 
   const hasUserRated = Boolean(selectedPandal.userScores || selectedPandal.userRating);
 
@@ -48,11 +50,17 @@ export const PandalDetailModal: React.FC = () => {
 
   return (
     <div className="pandal-detail-page">
-      {/* Top Back Navigation */}
-      <div className="detail-top-nav" onClick={() => setSelectedPandal(null)}>
-        <Button variant="subtle" size="sm" icon={<ArrowLeft size={16} />}>
+      {/* Top Back & Share Navigation */}
+      <div className="detail-top-nav">
+        <Button variant="subtle" size="sm" icon={<ArrowLeft size={16} />} onClick={() => setSelectedPandal(null)}>
           Back
         </Button>
+        <ShareButton
+          data={{ type: 'pandal', pandal: selectedPandal }}
+          variant="button"
+          size="sm"
+          label="Share"
+        />
       </div>
 
       {/* Hero Image */}
@@ -89,26 +97,43 @@ export const PandalDetailModal: React.FC = () => {
 
         {/* Primary 1-Tap Action: Mark Visited */}
         <div className="primary-action-section">
-          <Button
-            variant={selectedPandal.userVisited ? 'visited' : 'primary'}
-            size="lg"
-            rounded="xl"
-            fullWidth={true}
-            icon={selectedPandal.userVisited ? <Check size={18} strokeWidth={3} /> : undefined}
-            onClick={() => {
-              if (user?.id === 'guest_user' || !user) {
-                setSelectedPandal(null);
-                setActiveTab('signup');
-                return;
-              }
-              toggleVisit(selectedPandal.id);
-            }}
-          >
-            {selectedPandal.userVisited ? '✓ Visited in your Puja Passport' : 'Mark as Visited'}
-          </Button>
+          <div style={{ display: 'flex', gap: '10px', width: '100%', alignItems: 'stretch' }}>
+            <Button
+              variant={selectedPandal.userVisited ? 'visited' : 'primary'}
+              size="lg"
+              rounded="xl"
+              fullWidth={true}
+              icon={selectedPandal.userVisited ? <Check size={18} strokeWidth={3} /> : undefined}
+              onClick={() => {
+                if (user?.id === 'guest_user' || !user) {
+                  setSelectedPandal(null);
+                  setActiveTab('signup');
+                  return;
+                }
+                toggleVisit(selectedPandal.id);
+              }}
+            >
+              {selectedPandal.userVisited ? '✓ Visited in your Puja Passport' : 'Mark as Visited'}
+            </Button>
+            {selectedPandal.userVisited && (
+              <Button
+                variant="outline"
+                size="lg"
+                rounded="xl"
+                icon={<Share2 size={16} />}
+                onClick={() => openShareModal({
+                  type: 'visit',
+                  pandal: selectedPandal,
+                  visitorName: currentUser.display_name,
+                  seasonYear: 'Durga Puja 2026'
+                })}
+                title="Share Check-in to Story / Status"
+              >
+                Share
+              </Button>
+            )}
+          </div>
         </div>
-
-
 
         {/* 2. User's Own 5-Dimension Rating / Rating Form */}
         <div className="section-block">
@@ -116,6 +141,23 @@ export const PandalDetailModal: React.FC = () => {
             <h3 className="section-title">
               {hasUserRated && !isEditingRating ? 'Your Rating' : 'Rate this Pandal'}
             </h3>
+            {hasUserRated && !isEditingRating && selectedPandal.userScores && (
+              <Button
+                variant="subtle"
+                size="sm"
+                icon={<Share2 size={14} />}
+                onClick={() => openShareModal({
+                  type: 'rating',
+                  pandal: selectedPandal,
+                  overallScore: selectedPandal.userRating || selectedPandal.userScores?.overall || 5,
+                  scores: selectedPandal.userScores || { overall: 5, theme: 5, idol: 5, lighting: 5, management: 5 },
+                  review: selectedPandal.userReview,
+                  reviewerName: currentUser.display_name
+                })}
+              >
+                Share Rating
+              </Button>
+            )}
           </div>
 
           {!user ? (
@@ -351,7 +393,8 @@ export const PandalDetailModal: React.FC = () => {
           padding: 1rem 0;
           display: flex;
           align-items: center;
-          cursor: pointer;
+          justify-content: space-between;
+          width: 100%;
         }
       `}</style>
     </div>
