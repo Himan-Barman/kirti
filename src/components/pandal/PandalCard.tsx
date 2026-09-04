@@ -35,27 +35,27 @@ export const PandalCard: React.FC<PandalCardProps> = ({ pandal }) => {
           </Badge>
         </div>
 
-        {/* Quick Share Trigger on Card */}
-        <button
-          type="button"
-          className="pandal-quick-share-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            openShareModal({ type: 'pandal', pandal });
-          }}
-          title="Share Pandal"
-          aria-label="Share Pandal"
-        >
-          <Share2 size={13} />
-        </button>
-
-        {pandal.userVisited && (
-          <div className="visited-badge-pos">
+        {/* Top Right Actions: Visited badge & Share button */}
+        <div className="card-top-right-group">
+          {pandal.userVisited && (
             <Badge variant="red" size="sm" rounded="full" icon={<Check size={11} strokeWidth={3} />}>
               Visited
             </Badge>
-          </div>
-        )}
+          )}
+
+          <button
+            type="button"
+            className="pandal-quick-share-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              openShareModal({ type: 'pandal', pandal });
+            }}
+            title="Share Pandal"
+            aria-label="Share Pandal"
+          >
+            <Share2 size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Body Content */}
@@ -170,17 +170,16 @@ export const PandalCard: React.FC<PandalCardProps> = ({ pandal }) => {
           left: 14px;
           z-index: 2;
         }
-        .visited-badge-pos {
+        .card-top-right-group {
           position: absolute;
-          top: 14px;
-          right: 14px;
-          z-index: 2;
-        }
-        .pandal-quick-share-btn {
-          position: absolute;
-          bottom: 12px;
+          top: 12px;
           right: 12px;
           z-index: 3;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .pandal-quick-share-btn {
           width: 32px;
           height: 32px;
           border-radius: 50%;
